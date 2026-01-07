@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wedding Prop Bets - Admin Dashboard</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Wedding Admin Dashboard</h1>
+      <label>
+        API Base URL
+        <input id="api-base" placeholder="https://your-worker-name.workers.dev" />
+      </label>
+      <button id="api-save" class="secondary">Save API Base</button>
+
+      <div id="status" class="notice" style="display: none;"></div>
+
+      <section>
+        <h2>Wedding Details</h2>
+        <p id="wedding-name"></p>
+        <p id="wedding-date"></p>
+        <p id="invite-code"></p>
+      </section>
+
+      <section>
+        <h2>Submissions</h2>
+        <button id="toggle-btn" class="secondary">Toggle Submissions</button>
+        <p id="toggle-status" class="small"></p>
+        <table class="table" id="submissions-table">
+          <thead>
+            <tr>
+              <th>Display Name</th>
+              <th>Submitted At (UTC)</th>
+              <th>Tie Breaker</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>Answer Key (Questions 3-12)</h2>
+        <form id="answer-key-form">
+          <label>
+            3. Neon sign
+            <select id="key-q3" required>
+              <option value="">Select</option>
+              <option>Yes</option>
+              <option>No</option>
+            </select>
+          </label>
+          <label>
+            4. Photo booth
+            <select id="key-q4" required>
+              <option value="">Select</option>
+              <option>Yes</option>
+              <option>No</option>
+            </select>
+          </label>
+          <label>
+            5. Sweetheart table
+            <select id="key-q5" required>
+              <option value="">Select</option>
+              <option>Yes</option>
+              <option>No</option>
+            </select>
+          </label>
+          <label>
+            6. Choreographed first dance
+            <select id="key-q6" required>
+              <option value="">Select</option>
+              <option>Yes</option>
+              <option>No</option>
+            </select>
+          </label>
+          <label>
+            7. Best man speech
+            <select id="key-q7" required>
+              <option value="">Select</option>
+              <option>Over</option>
+              <option>Under</option>
+            </select>
+          </label>
+          <label>
+            8. Maid of honor speech
+            <select id="key-q8" required>
+              <option value="">Select</option>
+              <option>Over</option>
+              <option>Under</option>
+            </select>
+          </label>
+          <label>
+            9. Best man says beautiful + thanks parents
+            <select id="key-q9" required>
+              <option value="">Select</option>
+              <option>Yes</option>
+              <option>No</option>
+            </select>
+          </label>
+          <label>
+            10. Job mentioned
+            <select id="key-q10" required>
+              <option value="">Select</option>
+              <option>Yes</option>
+              <option>No</option>
+            </select>
+          </label>
+          <label>
+            11. Bouquet toss
+            <select id="key-q11" required>
+              <option value="">Select</option>
+              <option>Yes</option>
+              <option>No</option>
+            </select>
+          </label>
+          <label>
+            12. Dress change
+            <select id="key-q12" required>
+              <option value="">Select</option>
+              <option>Yes</option>
+              <option>No</option>
+            </select>
+          </label>
+          <button type="submit">Save Answer Key</button>
+          <div class="error" id="answer-key-error"></div>
+        </form>
+      </section>
+
+      <section>
+        <h2>Leaderboard</h2>
+        <table class="table" id="leaderboard-table">
+          <thead>
+            <tr>
+              <th>Display Name</th>
+              <th>Total Points</th>
+              <th>Winner</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>Tie Break Winner</h2>
+        <label>
+          Pick winner among tied participants
+          <select id="winner-select">
+            <option value="">No tie detected</option>
+          </select>
+        </label>
+        <button id="winner-save">Save Winner</button>
+        <div class="error" id="winner-error"></div>
+      </section>
+
+      <section>
+        <h2>Export</h2>
+        <button id="csv-btn" class="secondary">Download CSV</button>
+      </section>
+    </div>
+
+    <script src="shared.js"></script>
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      const adminToken = params.get("admin_token");
+      const status = document.getElementById("status");
+      const submissionsBody = document.querySelector("#submissions-table tbody");
+      const leaderboardBody = document.querySelector("#leaderboard-table tbody");
+      const toggleBtn = document.getElementById("toggle-btn");
+      const toggleStatus = document.getElementById("toggle-status");
+      const winnerSelect = document.getElementById("winner-select");
+      const winnerError = document.getElementById("winner-error");
+
+      const setStatus = (message) => {
+        status.textContent = message;
+        status.style.display = "block";
+      };
+
+      const render = (data) => {
+        document.getElementById("wedding-name").textContent = `Wedding: ${data.wedding.name}`;
+        document.getElementById("wedding-date").textContent = `Date: ${data.wedding.date}`;
+        document.getElementById("invite-code").textContent = `Invite Code: ${data.wedding.invite_code}`;
+        toggleStatus.textContent = data.wedding.submissions_open
+          ? "Submissions are OPEN"
+          : "Submissions are CLOSED";
+
+        submissionsBody.innerHTML = "";
+        data.submissions.forEach((submission) => {
+          const row = document.createElement("tr");
+          row.innerHTML = `<td>${submission.display_name}</td><td>${submission.submitted_at_utc}</td><td>${submission.q13_tiebreaker}</td>`;
+          submissionsBody.appendChild(row);
+        });
+
+        leaderboardBody.innerHTML = "";
+        data.leaderboard.forEach((entry) => {
+          const row = document.createElement("tr");
+          row.innerHTML = `<td>${entry.display_name}</td><td>${entry.total_points ?? ""}</td><td>${
+            entry.is_winner ? "Winner" : ""
+          }</td>`;
+          leaderboardBody.appendChild(row);
+        });
+
+        if (data.answer_key) {
+          document.getElementById("key-q3").value = data.answer_key.q3_neon_sign;
+          document.getElementById("key-q4").value = data.answer_key.q4_photo_booth;
+          document.getElementById("key-q5").value = data.answer_key.q5_sweetheart_table;
+          document.getElementById("key-q6").value = data.answer_key.q6_choreographed_first_dance;
+          document.getElementById("key-q7").value = data.answer_key.q7_best_man_speech_over_under;
+          document.getElementById("key-q8").value = data.answer_key.q8_maid_of_honor_speech_over_under;
+          document.getElementById("key-q9").value = data.answer_key.q9_best_man_beautiful_thank_parents;
+          document.getElementById("key-q10").value = data.answer_key.q10_job_mentioned;
+          document.getElementById("key-q11").value = data.answer_key.q11_bouquet_toss;
+          document.getElementById("key-q12").value = data.answer_key.q12_dress_change;
+        }
+
+        winnerSelect.innerHTML = "";
+        if (data.tied.length > 1) {
+          const placeholder = document.createElement("option");
+          placeholder.value = "";
+          placeholder.textContent = "Select winner";
+          winnerSelect.appendChild(placeholder);
+          data.tied.forEach((entry) => {
+            const option = document.createElement("option");
+            option.value = entry.id;
+            option.textContent = entry.display_name;
+            winnerSelect.appendChild(option);
+          });
+        } else {
+          const option = document.createElement("option");
+          option.value = "";
+          option.textContent = "No tie detected";
+          winnerSelect.appendChild(option);
+        }
+      };
+
+      const load = async () => {
+        if (!adminToken) {
+          setStatus("Missing admin token.");
+          return;
+        }
+        try {
+          const data = await apiFetch(`/api/admin/weddings/${adminToken}`);
+          render(data);
+        } catch (error) {
+          setStatus(error.message);
+        }
+      };
+
+      toggleBtn.addEventListener("click", async () => {
+        try {
+          const current = toggleStatus.textContent.includes("OPEN");
+          await apiFetch(`/api/admin/weddings/${adminToken}/toggle`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ submissions_open: !current }),
+          });
+          await load();
+        } catch (error) {
+          setStatus(error.message);
+        }
+      });
+
+      document.getElementById("answer-key-form").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        document.getElementById("answer-key-error").textContent = "";
+
+        const payload = {
+          q3_neon_sign: document.getElementById("key-q3").value,
+          q4_photo_booth: document.getElementById("key-q4").value,
+          q5_sweetheart_table: document.getElementById("key-q5").value,
+          q6_choreographed_first_dance: document.getElementById("key-q6").value,
+          q7_best_man_speech_over_under: document.getElementById("key-q7").value,
+          q8_maid_of_honor_speech_over_under: document.getElementById("key-q8").value,
+          q9_best_man_beautiful_thank_parents: document.getElementById("key-q9").value,
+          q10_job_mentioned: document.getElementById("key-q10").value,
+          q11_bouquet_toss: document.getElementById("key-q11").value,
+          q12_dress_change: document.getElementById("key-q12").value,
+        };
+
+        for (const value of Object.values(payload)) {
+          if (!value) {
+            document.getElementById("answer-key-error").textContent = "All answers are required.";
+            return;
+          }
+        }
+
+        try {
+          await apiFetch(`/api/admin/weddings/${adminToken}/answer-key`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          await load();
+        } catch (error) {
+          document.getElementById("answer-key-error").textContent = error.message;
+        }
+      });
+
+      document.getElementById("winner-save").addEventListener("click", async () => {
+        winnerError.textContent = "";
+        const selected = winnerSelect.value;
+        if (!selected) {
+          winnerError.textContent = "Select a winner.";
+          return;
+        }
+        try {
+          await apiFetch(`/api/admin/weddings/${adminToken}/winner`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ submission_id: Number(selected) }),
+          });
+          await load();
+        } catch (error) {
+          winnerError.textContent = error.message;
+        }
+      });
+
+      document.getElementById("csv-btn").addEventListener("click", async () => {
+        try {
+          const csv = await apiFetch(`/api/admin/weddings/${adminToken}/csv`);
+          const blob = new Blob([csv], { type: "text/csv" });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = "wedding-prop-bets.csv";
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+        } catch (error) {
+          setStatus(error.message);
+        }
+      });
+
+      load();
+    </script>
+  </body>
+</html>

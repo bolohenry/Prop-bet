@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wedding Prop Bets - Confirmation</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Submission Confirmed</h1>
+      <label>
+        API Base URL
+        <input id="api-base" placeholder="https://your-worker-name.workers.dev" />
+      </label>
+      <button id="api-save" class="secondary">Save API Base</button>
+
+      <div id="status" class="notice" style="display: none;"></div>
+      <div id="answers"></div>
+
+      <p class="small"><a href="index.html">Back to Join</a></p>
+    </div>
+
+    <script src="shared.js"></script>
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      const inviteCode = params.get("invite_code");
+      const displayName = params.get("display_name");
+      const status = document.getElementById("status");
+      const answersContainer = document.getElementById("answers");
+
+      const render = (submission) => {
+        const items = [
+          ["1. Whose wedding?", submission.q1_whose_wedding],
+          ["2. Your name", submission.q2_your_name],
+          ["3. Neon sign", submission.q3_neon_sign],
+          ["4. Photo booth", submission.q4_photo_booth],
+          ["5. Sweetheart table", submission.q5_sweetheart_table],
+          ["6. Choreographed first dance", submission.q6_choreographed_first_dance],
+          ["7. Best man speech", submission.q7_best_man_speech_over_under],
+          ["8. Maid of honor speech", submission.q8_maid_of_honor_speech_over_under],
+          [
+            "9. Best man says beautiful + thanks parents",
+            submission.q9_best_man_beautiful_thank_parents,
+          ],
+          ["10. Job mentioned", submission.q10_job_mentioned],
+          ["11. Bouquet toss", submission.q11_bouquet_toss],
+          ["12. Dress change", submission.q12_dress_change],
+          ["13. Tie breaker", submission.q13_tiebreaker],
+        ];
+        answersContainer.innerHTML = items
+          .map(
+            ([label, value]) =>
+              `<p><strong>${label}:</strong> ${value || ""}</p>`
+          )
+          .join("");
+      };
+
+      const loadSubmission = async () => {
+        const cached = localStorage.getItem("last_submission");
+        if (cached) {
+          render(JSON.parse(cached));
+          return;
+        }
+        if (!inviteCode || !displayName) {
+          status.textContent = "Missing invite code or display name.";
+          status.style.display = "block";
+          return;
+        }
+        try {
+          const data = await apiFetch(
+            `/api/weddings/${inviteCode}/submissions?display_name=${encodeURIComponent(displayName)}`
+          );
+          if (!data.exists) {
+            status.textContent = "No submission found.";
+            status.style.display = "block";
+            return;
+          }
+          render(data.submission);
+        } catch (error) {
+          status.textContent = error.message;
+          status.style.display = "block";
+        }
+      };
+
+      loadSubmission();
+    </script>
+  </body>
+</html>
