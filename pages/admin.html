@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wedding Prop Bets - Admin Home</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Admin Home</h1>
+      <p class="small">Set the API Base URL so this page can create weddings.</p>
+      <label>
+        API Base URL
+        <input id="api-base" placeholder="https://your-worker-name.workers.dev" />
+      </label>
+      <button id="api-save" class="secondary">Save API Base</button>
+
+      <h2>Create a Wedding</h2>
+      <form id="create-form">
+        <label>
+          Wedding Name
+          <input id="wedding-name" required />
+          <div class="error" id="wedding-name-error"></div>
+        </label>
+        <label>
+          Wedding Date (YYYY-MM-DD)
+          <input id="wedding-date" required />
+          <div class="error" id="wedding-date-error"></div>
+        </label>
+        <button type="submit">Create Wedding</button>
+        <div class="error" id="create-error"></div>
+      </form>
+
+      <div id="links" style="display: none;">
+        <h2>Links</h2>
+        <p>Participant link:</p>
+        <p class="link" id="participant-link"></p>
+        <p>Admin link:</p>
+        <p class="link" id="admin-link"></p>
+      </div>
+    </div>
+
+    <script src="shared.js"></script>
+    <script>
+      const form = document.getElementById("create-form");
+      const links = document.getElementById("links");
+      const participantLink = document.getElementById("participant-link");
+      const adminLink = document.getElementById("admin-link");
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        document.getElementById("create-error").textContent = "";
+        document.getElementById("wedding-name-error").textContent = "";
+        document.getElementById("wedding-date-error").textContent = "";
+
+        const name = document.getElementById("wedding-name").value.trim();
+        const date = document.getElementById("wedding-date").value.trim();
+        let hasError = false;
+
+        if (!name) {
+          document.getElementById("wedding-name-error").textContent = "Wedding name is required.";
+          hasError = true;
+        }
+        if (!date) {
+          document.getElementById("wedding-date-error").textContent = "Wedding date is required.";
+          hasError = true;
+        }
+        if (hasError) return;
+
+        try {
+          const data = await apiFetch("/api/admin/weddings", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, date }),
+          });
+
+          const inviteCode = data.wedding.invite_code;
+          const adminToken = data.wedding.admin_token;
+          const baseUrl = window.location.origin + window.location.pathname.replace("admin.html", "");
+          const apiBase = document.getElementById("api-base").value.trim();
+          const apiParam = apiBase ? `&api=${encodeURIComponent(apiBase)}` : "";
+          participantLink.textContent = `${baseUrl}index.html?invite_code=${inviteCode}${apiParam}`;
+          adminLink.textContent = `${baseUrl}admin_dashboard.html?admin_token=${adminToken}${apiParam}`;
+          links.style.display = "block";
+        } catch (error) {
+          document.getElementById("create-error").textContent = error.message;
+        }
+      });
+    </script>
+  </body>
+</html>

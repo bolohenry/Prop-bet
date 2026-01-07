@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wedding Prop Bets - Join</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Wedding Prop Bets</h1>
+      <p class="small">Set the API Base URL once so the pages can talk to your Worker.</p>
+      <label>
+        API Base URL
+        <input id="api-base" placeholder="https://your-worker-name.workers.dev" />
+      </label>
+      <button id="api-save" class="secondary">Save API Base</button>
+
+      <h2>Join a Wedding</h2>
+      <form id="join-form">
+        <label>
+          Invite Code
+          <input id="invite-code" required />
+          <div class="error" id="invite-code-error"></div>
+        </label>
+        <label>
+          Display Name
+          <input id="display-name" required />
+          <div class="error" id="display-name-error"></div>
+        </label>
+        <button type="submit">Continue</button>
+        <div class="error" id="join-error"></div>
+      </form>
+
+      <p class="small">Admin? Go to <a href="admin.html">Admin Home</a>.</p>
+    </div>
+
+    <script src="shared.js"></script>
+    <script>
+      const form = document.getElementById("join-form");
+      const inviteCodeInput = document.getElementById("invite-code");
+      const displayNameInput = document.getElementById("display-name");
+      const joinError = document.getElementById("join-error");
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        joinError.textContent = "";
+        document.getElementById("invite-code-error").textContent = "";
+        document.getElementById("display-name-error").textContent = "";
+
+        const inviteCode = inviteCodeInput.value.trim();
+        const displayName = displayNameInput.value.trim();
+        let hasError = false;
+
+        if (!inviteCode) {
+          document.getElementById("invite-code-error").textContent = "Invite code is required.";
+          hasError = true;
+        }
+        if (!displayName) {
+          document.getElementById("display-name-error").textContent = "Display name is required.";
+          hasError = true;
+        }
+        if (hasError) return;
+
+        try {
+          await apiFetch(`/api/weddings/${inviteCode}`);
+          const params = new URLSearchParams({ invite_code: inviteCode, display_name: displayName });
+          window.location.href = `survey.html?${params.toString()}`;
+        } catch (error) {
+          joinError.textContent = error.message;
+        }
+      });
+    </script>
+  </body>
+</html>

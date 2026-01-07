@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wedding Prop Bets - Survey</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Wedding Prop Bets</h1>
+      <label>
+        API Base URL
+        <input id="api-base" placeholder="https://your-worker-name.workers.dev" />
+      </label>
+      <button id="api-save" class="secondary">Save API Base</button>
+
+      <div id="notice" class="notice" style="display: none;"></div>
+
+      <form id="survey-form">
+        <label>
+          1. Whose wedding? (i.e., Paul and Marie)
+          <input id="q1" required />
+          <div class="error" id="q1-error"></div>
+        </label>
+        <label>
+          2. Your name
+          <input id="q2" required />
+          <div class="error" id="q2-error"></div>
+        </label>
+
+        <label>
+          3. Will there be a neon sign?
+          <select id="q3" required>
+            <option value="">Select</option>
+            <option>Yes</option>
+            <option>No</option>
+          </select>
+          <div class="error" id="q3-error"></div>
+        </label>
+        <label>
+          4. Will there be a photo booth?
+          <select id="q4" required>
+            <option value="">Select</option>
+            <option>Yes</option>
+            <option>No</option>
+          </select>
+          <div class="error" id="q4-error"></div>
+        </label>
+        <label>
+          5. Will there be a sweetheart table?
+          <select id="q5" required>
+            <option value="">Select</option>
+            <option>Yes</option>
+            <option>No</option>
+          </select>
+          <div class="error" id="q5-error"></div>
+        </label>
+        <label>
+          6. Will there be a choreographed first dance?
+          <select id="q6" required>
+            <option value="">Select</option>
+            <option>Yes</option>
+            <option>No</option>
+          </select>
+          <div class="error" id="q6-error"></div>
+        </label>
+        <label>
+          7. Will the best man speech be over/under 5.5 minutes?
+          <select id="q7" required>
+            <option value="">Select</option>
+            <option>Over</option>
+            <option>Under</option>
+          </select>
+          <div class="error" id="q7-error"></div>
+        </label>
+        <label>
+          8. Will the maid of honor speech be over/under 5.5 minutes?
+          <select id="q8" required>
+            <option value="">Select</option>
+            <option>Over</option>
+            <option>Under</option>
+          </select>
+          <div class="error" id="q8-error"></div>
+        </label>
+        <label>
+          9. Will the best man tell the bride she looks beautiful AND thank both parents tonight?
+          <select id="q9" required>
+            <option value="">Select</option>
+            <option>Yes</option>
+            <option>No</option>
+          </select>
+          <div class="error" id="q9-error"></div>
+        </label>
+        <label>
+          10. Will the bride or groom's job be mentioned in maid of honor/best man speech?
+          <select id="q10" required>
+            <option value="">Select</option>
+            <option>Yes</option>
+            <option>No</option>
+          </select>
+          <div class="error" id="q10-error"></div>
+        </label>
+        <label>
+          11. Will there be a bouquet toss?
+          <select id="q11" required>
+            <option value="">Select</option>
+            <option>Yes</option>
+            <option>No</option>
+          </select>
+          <div class="error" id="q11-error"></div>
+        </label>
+        <label>
+          12. Will bride do a dress change before after party?
+          <select id="q12" required>
+            <option value="">Select</option>
+            <option>Yes</option>
+            <option>No</option>
+          </select>
+          <div class="error" id="q12-error"></div>
+        </label>
+        <label>
+          13. Tie Breaker - What time will the bride leave the after party? (price is right rules)
+          <input id="q13" required />
+          <div class="error" id="q13-error"></div>
+        </label>
+
+        <button type="submit" id="submit-btn">Submit</button>
+        <div class="error" id="submit-error"></div>
+      </form>
+    </div>
+
+    <script src="shared.js"></script>
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      const inviteCode = params.get("invite_code");
+      const displayName = params.get("display_name");
+      const notice = document.getElementById("notice");
+      const submitError = document.getElementById("submit-error");
+      const submitBtn = document.getElementById("submit-btn");
+      const form = document.getElementById("survey-form");
+
+      const fields = [
+        { id: "q1", key: "q1_whose_wedding" },
+        { id: "q2", key: "q2_your_name" },
+        { id: "q3", key: "q3_neon_sign" },
+        { id: "q4", key: "q4_photo_booth" },
+        { id: "q5", key: "q5_sweetheart_table" },
+        { id: "q6", key: "q6_choreographed_first_dance" },
+        { id: "q7", key: "q7_best_man_speech_over_under" },
+        { id: "q8", key: "q8_maid_of_honor_speech_over_under" },
+        { id: "q9", key: "q9_best_man_beautiful_thank_parents" },
+        { id: "q10", key: "q10_job_mentioned" },
+        { id: "q11", key: "q11_bouquet_toss" },
+        { id: "q12", key: "q12_dress_change" },
+        { id: "q13", key: "q13_tiebreaker" },
+      ];
+
+      const setReadOnly = (submission) => {
+        fields.forEach((field) => {
+          const input = document.getElementById(field.id);
+          input.value = submission[field.key] || "";
+          input.setAttribute("disabled", "disabled");
+        });
+        submitBtn.disabled = true;
+      };
+
+      const loadExisting = async () => {
+        if (!inviteCode || !displayName) {
+          notice.textContent = "Missing invite code or display name.";
+          notice.style.display = "block";
+          submitBtn.disabled = true;
+          return;
+        }
+
+        try {
+          const data = await apiFetch(
+            `/api/weddings/${inviteCode}/submissions?display_name=${encodeURIComponent(displayName)}`
+          );
+          if (!data.submissions_open) {
+            notice.textContent = "Submissions are closed.";
+            notice.style.display = "block";
+            submitBtn.disabled = true;
+          }
+          if (data.exists) {
+            notice.textContent = "Submission already received.";
+            notice.style.display = "block";
+            setReadOnly(data.submission);
+          }
+        } catch (error) {
+          notice.textContent = error.message;
+          notice.style.display = "block";
+          submitBtn.disabled = true;
+        }
+      };
+
+      const validate = () => {
+        let hasError = false;
+        fields.forEach((field) => {
+          const input = document.getElementById(field.id);
+          const errorEl = document.getElementById(`${field.id}-error`);
+          errorEl.textContent = "";
+          if (!input.value.trim()) {
+            errorEl.textContent = "This question is required.";
+            hasError = true;
+          }
+        });
+        return !hasError;
+      };
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        submitError.textContent = "";
+        if (!validate()) return;
+
+        const payload = { display_name: displayName };
+        fields.forEach((field) => {
+          payload[field.key] = document.getElementById(field.id).value.trim();
+        });
+
+        try {
+          const data = await apiFetch(`/api/weddings/${inviteCode}/submissions`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+
+          const submission = data.submission;
+          const params = new URLSearchParams({
+            invite_code: inviteCode,
+            display_name: displayName,
+          });
+          localStorage.setItem("last_submission", JSON.stringify(submission));
+          window.location.href = `confirmation.html?${params.toString()}`;
+        } catch (error) {
+          submitError.textContent = error.message;
+        }
+      });
+
+      loadExisting();
+    </script>
+  </body>
+</html>
