@@ -205,7 +205,7 @@ export default function ParticipantSurvey() {
             disabled={submitting}
             className="w-full bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-500 hover:to-brand-400 text-white py-4 rounded-2xl text-lg font-bold transition-all disabled:opacity-50 shadow-lg shadow-brand-500/30"
           >
-            {submitting ? 'Submitting...' : 'Submit My Answers 🎉'}
+            {submitting ? 'Submitting...' : 'Submit my answers'}
           </button>
         </div>
       </form>

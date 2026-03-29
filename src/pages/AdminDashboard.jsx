@@ -48,7 +48,7 @@ export default function AdminDashboard() {
       {/* Header */}
       <div className="bg-gradient-to-r from-brand-800 to-brand-600 px-4 py-6 sm:py-8">
         <div className="max-w-4xl mx-auto">
-          <p className="text-brand-300 text-xs font-semibold uppercase tracking-wider mb-1">Admin Dashboard</p>
+          <p className="text-brand-300 text-xs font-semibold uppercase tracking-wider mb-1">Admin dashboard</p>
           <h1 className="text-xl sm:text-2xl font-bold text-white mb-1">{event.name}</h1>
           <p className="text-brand-200 text-sm">{formattedDate}</p>
         </div>
@@ -70,7 +70,7 @@ export default function AdminDashboard() {
               onClick={() => downloadCsv(event, submissions || [])}
               className="text-sm bg-white hover:bg-gray-50 border border-gray-200 px-4 py-2 rounded-xl font-semibold transition-colors text-gray-700 shadow-sm"
             >
-              📥 Export CSV
+              📥 Export csv
             </button>
           </div>
           <SubmissionsTable submissions={submissions} />
@@ -80,7 +80,7 @@ export default function AdminDashboard() {
         <section>
           <h2 className="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
             <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-success-100 text-success-600 text-sm">⚡</span>
-            Live Scoring
+            Live scoring
           </h2>
           <ScoringPanel adminCode={adminCode} outcomes={outcomes} submissions={submissions} />
         </section>
@@ -98,7 +98,7 @@ export default function AdminDashboard() {
         <section>
           <h2 className="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
             <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-accent-400/20 text-accent-500 text-sm">👑</span>
-            Tie Breaker
+            Tie breaker
           </h2>
           <TieBreakerControl adminCode={adminCode} event={event} submissions={submissions} />
         </section>
@@ -107,7 +107,7 @@ export default function AdminDashboard() {
         <section>
           <h2 className="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
             <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-brand-100 text-brand-600 text-sm">📊</span>
-            Answer Matrix
+            Answer matrix
           </h2>
           <AnswerMatrix submissions={submissions} outcomes={outcomes} />
         </section>
@@ -116,7 +116,7 @@ export default function AdminDashboard() {
         <section>
           <h2 className="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
             <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-gray-100 text-gray-600 text-sm">⏰</span>
-            Tie Breaker Answers
+            Tie breaker answers
           </h2>
           <TieBreakerTable submissions={submissions} />
         </section>
@@ -144,7 +144,7 @@ function StatusControl({ adminCode, currentStatus }) {
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-      <label className="block text-sm font-bold text-gray-700 mb-3">Event Status</label>
+      <label className="block text-sm font-bold text-gray-700 mb-3">Event status</label>
       <div className="flex flex-wrap gap-2">
         {statuses.map(s => {
           const isActive = currentStatus === s.value;
@@ -254,7 +254,7 @@ function ScoringCard({ question, outcome, adminCode, submissions }) {
         </p>
         {isResolved && (
           <span className="text-xs bg-success-500 text-white px-2.5 py-1 rounded-full font-bold whitespace-nowrap shadow-sm">
-            ✓ Resolved
+            ✓ resolved
           </span>
         )}
       </div>
@@ -359,7 +359,7 @@ function TieBreakerControl({ adminCode, event, submissions }) {
                 <tr key={s.display_name} className={`transition-colors ${isWinner ? 'bg-warn-50' : 'hover:bg-gray-50/50'}`}>
                   <td className="px-4 py-3 font-semibold text-gray-800">
                     {s.display_name}
-                    {isWinner && <span className="text-warn-600 text-xs ml-1.5 font-bold">★ Winner</span>}
+                    {isWinner && <span className="text-warn-600 text-xs ml-1.5 font-bold">★ winner</span>}
                   </td>
                   <td className="px-4 py-3 text-gray-600">{s.q15}</td>
                   {correctMin !== null && (

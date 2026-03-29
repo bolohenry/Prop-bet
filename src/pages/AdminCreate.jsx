@@ -46,7 +46,7 @@ export default function AdminCreate() {
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-success-500/20 mb-4">
               <span className="text-3xl">🎉</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">Event Created!</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">Event created</h1>
             <p className="text-brand-300">Save both links below. You'll need them to run your event.</p>
           </div>
 
@@ -54,7 +54,7 @@ export default function AdminCreate() {
             <div className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-2xl p-5">
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-lg">🔗</span>
-                <label className="text-sm font-semibold text-white">Participant Invite Link</label>
+                <label className="text-sm font-semibold text-white">Participant invite link</label>
               </div>
               <p className="text-brand-300 text-xs mb-3">Share this with your wedding guests</p>
               <div className="flex items-center gap-2">
@@ -71,7 +71,7 @@ export default function AdminCreate() {
             <div className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-2xl p-5">
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-lg">🔒</span>
-                <label className="text-sm font-semibold text-white">Admin Dashboard Link</label>
+                <label className="text-sm font-semibold text-white">Admin dashboard link</label>
               </div>
               <p className="text-accent-400 text-xs mb-3">Keep this private — for event admin only</p>
               <div className="flex items-center gap-2">
@@ -95,13 +95,13 @@ export default function AdminCreate() {
       <div className="max-w-lg mx-auto pt-8 sm:pt-16">
         <div className="text-center mb-8">
           <span className="text-4xl mb-3 block">💍</span>
-          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">Create a Wedding Event</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">Create a wedding event</h1>
           <p className="text-brand-300">Set up your prop bet event. You'll get shareable links after creating.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-2xl p-6 space-y-5">
           <div>
-            <label className="block text-sm font-semibold text-brand-200 mb-1.5">Wedding Name</label>
+            <label className="block text-sm font-semibold text-brand-200 mb-1.5">Wedding name</label>
             <input
               type="text"
               value={name}
@@ -111,7 +111,7 @@ export default function AdminCreate() {
             />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-brand-200 mb-1.5">Wedding Date</label>
+            <label className="block text-sm font-semibold text-brand-200 mb-1.5">Wedding date</label>
             <input
               type="date"
               value={date}
@@ -129,7 +129,7 @@ export default function AdminCreate() {
             disabled={loading}
             className="w-full bg-brand-500 hover:bg-brand-400 text-white py-3.5 rounded-xl text-base font-bold transition-all disabled:opacity-50 shadow-lg shadow-brand-500/25 hover:shadow-xl hover:shadow-brand-500/30"
           >
-            {loading ? 'Creating...' : 'Create Event'}
+            {loading ? 'Creating...' : 'Create event'}
           </button>
         </form>
       </div>

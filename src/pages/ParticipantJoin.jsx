@@ -72,10 +72,10 @@ export default function ParticipantJoin() {
           </div>
         ) : (
           <div className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
-            <p className="text-brand-200 text-sm mb-5">Enter your name to get started with the prop bets!</p>
+            <p className="text-brand-200 text-sm mb-5">Enter your name to get started with the prop bets.</p>
             <form onSubmit={handleContinue} className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-brand-200 mb-1.5">Your Display Name</label>
+                <label className="block text-sm font-semibold text-brand-200 mb-1.5">Your display name</label>
                 <input
                   type="text"
                   value={displayName}

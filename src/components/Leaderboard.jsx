@@ -33,7 +33,7 @@ export default function Leaderboard({ submissions, winnerName, currentUser }) {
                 <td className="px-4 py-3 font-semibold text-gray-800">
                   {s.display_name}
                   {isMe && <span className="text-brand-500 text-xs ml-1.5 font-bold">(you)</span>}
-                  {isWinner && <span className="text-warn-600 text-xs ml-1.5 font-bold">★ Winner</span>}
+                  {isWinner && <span className="text-warn-600 text-xs ml-1.5 font-bold">★ winner</span>}
                 </td>
                 <td className="px-4 py-3 text-right">
                   <span className="inline-flex items-center justify-center min-w-[2rem] px-2 py-0.5 bg-brand-100 text-brand-700 font-bold rounded-lg text-sm">

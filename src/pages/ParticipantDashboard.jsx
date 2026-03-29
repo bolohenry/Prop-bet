@@ -65,7 +65,7 @@ export default function ParticipantDashboard() {
         <div className="bg-success-500 rounded-2xl p-4 flex items-center gap-3 shadow-md shadow-success-500/25">
           <span className="text-2xl">✅</span>
           <div>
-            <p className="text-white font-semibold">Your answers have been submitted!</p>
+            <p className="text-white font-semibold">Your answers have been submitted.</p>
             <p className="text-success-100 text-sm">You're locked in, {submission.display_name}.</p>
           </div>
         </div>
@@ -74,7 +74,7 @@ export default function ParticipantDashboard() {
         <section>
           <h2 className="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
             <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-brand-100 text-brand-600 text-sm">📝</span>
-            Your Submission
+            Your submission
           </h2>
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 divide-y divide-gray-100 overflow-hidden">
             {QUESTIONS.map(q => {
@@ -123,7 +123,7 @@ export default function ParticipantDashboard() {
           <section>
             <h2 className="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
               <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-brand-100 text-brand-600 text-sm">📊</span>
-              Answer Matrix
+              Answer matrix
             </h2>
             <AnswerMatrix submissions={submissions} outcomes={outcomes} />
           </section>
