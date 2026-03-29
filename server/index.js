@@ -266,10 +266,13 @@ if (process.env.NODE_ENV === 'production') {
   const distPath = path.join(__dirname, '..', 'dist');
   app.use(express.static(distPath));
   app.get('*', (req, res) => {
+    if (req.path.startsWith('/api') || req.path.startsWith('/sse')) {
+      return res.status(404).json({ error: 'Not found' });
+    }
     res.sendFile(path.join(distPath, 'index.html'));
   });
 }
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
 });
