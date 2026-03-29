@@ -12,7 +12,7 @@ export const QUESTIONS = [
   { id: 'q12', number: 11, text: "What will the cake flavor be?", type: 'choice', options: ['Vanilla', 'Chocolate', 'Fruit', 'Other'], scored: true },
   { id: 'q13', number: 12, text: "Will Mr. Brightside be played?", type: 'yesno', scored: true },
   { id: 'q14', number: 13, text: "Will bride do a dress change before after party?", type: 'yesno', scored: true },
-  { id: 'q15', number: 14, text: "Tie Breaker - What time will the bride leave the after party?", hint: "price is right rules", type: 'text', scored: false },
+  { id: 'q15', number: 14, text: "Tie Breaker - What time will the bride leave the after party?", hint: "price is right rules", type: 'time', scored: false },
 ];
 
 export const SCORED_QUESTIONS = QUESTIONS.filter(q => q.scored);

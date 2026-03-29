@@ -3,6 +3,20 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { getEventByInvite, submitAnswers } from '../lib/api';
 import { QUESTIONS } from '../../shared/questions.js';
 
+const TIME_OPTIONS = (() => {
+  const times = [];
+  for (let hour24 = 21; hour24 <= 28; hour24++) {
+    const h = hour24 % 24;
+    for (let m = 0; m < 60; m += 15) {
+      const hour12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+      const suffix = h >= 12 && h < 24 ? 'PM' : 'AM';
+      times.push(`${hour12}:${String(m).padStart(2, '0')} ${suffix}`);
+      if (h === 4 && m === 0) return times;
+    }
+  }
+  return times;
+})();
+
 export default function ParticipantSurvey() {
   const { inviteCode } = useParams();
   const navigate = useNavigate();
@@ -160,6 +174,19 @@ export default function ParticipantSurvey() {
                   </button>
                 ))}
               </div>
+            )}
+
+            {q.type === 'time' && (
+              <select
+                value={answers[q.id]}
+                onChange={e => setAnswer(q.id, e.target.value)}
+                className={`w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all appearance-none bg-white ${!answers[q.id] ? 'text-gray-400' : 'text-gray-800'}`}
+              >
+                <option value="">Select a time...</option>
+                {TIME_OPTIONS.map(t => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
             )}
 
             {errors[q.id] && <p className="text-danger-500 text-xs mt-2 font-medium">{errors[q.id]}</p>}
