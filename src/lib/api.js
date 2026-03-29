@@ -87,7 +87,7 @@ export async function submitAnswers(eventId, answers) {
     .insert({
       event_id: eventId,
       display_name: displayName,
-      q1: answers.q1?.trim(), q2: answers.q2?.trim(),
+      q2: answers.q2?.trim(),
       q3: answers.q3, q4: answers.q4, q5: answers.q5, q6: answers.q6,
       q7: answers.q7, q8: answers.q8, q9: answers.q9, q10: answers.q10,
       q11: answers.q11, q12: answers.q12, q13: answers.q13, q14: answers.q14,
@@ -171,13 +171,13 @@ export async function setTieWinner(adminCode, winnerName) {
 export function downloadCsv(event, submissions) {
   const headers = [
     'event_name', 'event_date', 'display_name', 'submitted_at',
-    'q1','q2','q3','q4','q5','q6','q7','q8','q9','q10','q11','q12','q13','q14','q15',
+    'q2','q3','q4','q5','q6','q7','q8','q9','q10','q11','q12','q13','q14','q15',
     'total_points', 'winner'
   ];
 
   const rows = submissions.map(s => [
     event.name, event.date, s.display_name, s.submitted_at,
-    s.q1||'', s.q2||'', s.q3||'', s.q4||'', s.q5||'', s.q6||'', s.q7||'',
+    s.q2||'', s.q3||'', s.q4||'', s.q5||'', s.q6||'', s.q7||'',
     s.q8||'', s.q9||'', s.q10||'', s.q11||'', s.q12||'', s.q13||'', s.q14||'', s.q15||'',
     s.total_points,
     event.tie_winner_name === s.display_name ? 'YES' : ''

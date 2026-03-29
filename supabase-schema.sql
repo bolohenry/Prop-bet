@@ -1,5 +1,8 @@
 -- Wedding Prop Bets — Supabase Schema
 -- Run this in your Supabase project: SQL Editor → New Query → paste → Run
+--
+-- If you already created the old schema with a q1 column, run this first:
+--   ALTER TABLE submissions DROP COLUMN IF EXISTS q1;
 
 -- 1. Tables
 
@@ -20,7 +23,7 @@ create table submissions (
   event_id uuid not null references events(id) on delete cascade,
   display_name text not null,
   submitted_at timestamptz not null default now(),
-  q1 text, q2 text, q3 text, q4 text, q5 text,
+  q2 text, q3 text, q4 text, q5 text,
   q6 text, q7 text, q8 text, q9 text, q10 text,
   q11 text, q12 text, q13 text, q14 text, q15 text,
   total_points integer not null default 0,
