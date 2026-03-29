@@ -75,11 +75,11 @@ export default function ParticipantSurvey() {
     }
   }
 
-  if (!event) return <div className="flex items-center justify-center min-h-screen bg-gray-50"><p className="text-gray-400">Loading...</p></div>;
+  if (!event) return <div className="flex items-center justify-center min-h-screen bg-surface"><p className="text-gray-400">Loading...</p></div>;
 
   if (event.status !== 'open') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-brand-950 via-brand-900 to-brand-800 p-4 sm:p-6 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-brand-950 via-brand-900 to-brand-800 p-4 sm:p-8 flex items-center justify-center">
         <div className="text-center">
           <span className="text-3xl block mb-3">🔒</span>
           <h1 className="text-2xl font-bold text-white mb-2">{event.name}</h1>
@@ -92,16 +92,15 @@ export default function ParticipantSurvey() {
   const formattedDate = new Date(event.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-8">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-brand-700 to-brand-500 px-4 py-6 sm:py-8 text-center">
-        <h1 className="text-xl sm:text-2xl font-bold text-white mb-1">{event.name}</h1>
-        <p className="text-brand-200 text-sm">{formattedDate}</p>
+    <div className="min-h-screen bg-surface pb-8">
+      <div className="bg-gradient-to-r from-brand-800 via-brand-700 to-brand-600 px-4 py-8 sm:py-10 text-center">
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-white mb-1 tracking-tight">{event.name}</h1>
+        <p className="text-brand-300 text-sm">{formattedDate}</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="max-w-lg mx-auto px-4 -mt-4 space-y-4">
+      <form onSubmit={handleSubmit} className="max-w-lg mx-auto px-4 -mt-5 space-y-4">
         {QUESTIONS.map(q => (
-          <div key={q.id} id={q.id} className={`bg-white rounded-2xl p-5 shadow-sm border transition-all ${errors[q.id] ? 'border-danger-500 ring-2 ring-danger-500/20' : 'border-gray-100'}`}>
+          <div key={q.id} id={q.id} className={`bg-white rounded-2xl p-5 sm:p-6 shadow-sm border-2 transition-all duration-200 ${errors[q.id] ? 'border-danger-400 shadow-danger-100' : 'border-transparent shadow-gray-900/[0.04]'}`}>
             <label className="block text-sm font-semibold text-gray-800 mb-3">
               <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-brand-100 text-brand-600 text-xs font-bold mr-2">{q.number}</span>
               {q.text}
@@ -113,7 +112,7 @@ export default function ParticipantSurvey() {
                 type="text"
                 value={answers[q.id]}
                 onChange={e => setAnswer(q.id, e.target.value)}
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 transition-all duration-200"
                 placeholder={q.hint || 'Type your answer...'}
                 readOnly={q.id === 'q2'}
               />
@@ -126,10 +125,10 @@ export default function ParticipantSurvey() {
                     key={opt}
                     type="button"
                     onClick={() => setAnswer(q.id, opt)}
-                    className={`flex-1 py-3.5 rounded-xl border-2 text-base font-semibold transition-all ${
+                    className={`flex-1 py-3.5 rounded-xl border-2 text-base font-semibold transition-all duration-200 ${
                       answers[q.id] === opt
-                        ? 'bg-brand-500 text-white border-brand-500 shadow-md shadow-brand-500/25'
-                        : 'bg-white text-gray-600 border-gray-200 hover:border-brand-300 hover:bg-brand-50'
+                        ? 'bg-brand-600 text-white border-brand-600 shadow-md shadow-brand-600/20'
+                        : 'bg-white text-gray-600 border-gray-200 hover:border-brand-300 active:scale-[0.98]'
                     }`}
                   >
                     {opt}
@@ -145,10 +144,10 @@ export default function ParticipantSurvey() {
                     key={opt}
                     type="button"
                     onClick={() => setAnswer(q.id, opt)}
-                    className={`flex-1 py-3.5 rounded-xl border-2 text-base font-semibold transition-all ${
+                    className={`flex-1 py-3.5 rounded-xl border-2 text-base font-semibold transition-all duration-200 ${
                       answers[q.id] === opt
-                        ? 'bg-brand-500 text-white border-brand-500 shadow-md shadow-brand-500/25'
-                        : 'bg-white text-gray-600 border-gray-200 hover:border-brand-300 hover:bg-brand-50'
+                        ? 'bg-brand-600 text-white border-brand-600 shadow-md shadow-brand-600/20'
+                        : 'bg-white text-gray-600 border-gray-200 hover:border-brand-300 active:scale-[0.98]'
                     }`}
                   >
                     {opt}
@@ -164,10 +163,10 @@ export default function ParticipantSurvey() {
                     key={opt}
                     type="button"
                     onClick={() => setAnswer(q.id, opt)}
-                    className={`py-3.5 rounded-xl border-2 text-sm font-semibold transition-all ${
+                    className={`py-3.5 rounded-xl border-2 text-sm font-semibold transition-all duration-200 ${
                       answers[q.id] === opt
-                        ? 'bg-brand-500 text-white border-brand-500 shadow-md shadow-brand-500/25'
-                        : 'bg-white text-gray-600 border-gray-200 hover:border-brand-300 hover:bg-brand-50'
+                        ? 'bg-brand-600 text-white border-brand-600 shadow-md shadow-brand-600/20'
+                        : 'bg-white text-gray-600 border-gray-200 hover:border-brand-300 active:scale-[0.98]'
                     }`}
                   >
                     {opt}
@@ -180,7 +179,7 @@ export default function ParticipantSurvey() {
               <select
                 value={answers[q.id]}
                 onChange={e => setAnswer(q.id, e.target.value)}
-                className={`w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all appearance-none bg-white ${!answers[q.id] ? 'text-gray-400' : 'text-gray-800'}`}
+                className={`w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 transition-all duration-200 appearance-none bg-white ${!answers[q.id] ? 'text-gray-400' : 'text-gray-800'}`}
               >
                 <option value="">Select a time...</option>
                 {TIME_OPTIONS.map(t => (
@@ -194,7 +193,7 @@ export default function ParticipantSurvey() {
         ))}
 
         {submitError && (
-          <div className="bg-danger-50 border border-danger-500/30 rounded-2xl p-4">
+          <div className="bg-danger-50 border border-danger-400/30 rounded-2xl p-4">
             <p className="text-danger-600 text-sm font-medium">{submitError}</p>
           </div>
         )}
@@ -203,7 +202,7 @@ export default function ParticipantSurvey() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-500 hover:to-brand-400 text-white py-4 rounded-2xl text-lg font-bold transition-all disabled:opacity-50 shadow-lg shadow-brand-500/30"
+            className="w-full bg-brand-600 hover:bg-brand-500 text-white py-4 rounded-2xl text-lg font-bold transition-all duration-200 disabled:opacity-50 shadow-xl shadow-brand-600/25 active:scale-[0.98]"
           >
             {submitting ? 'Submitting...' : 'Submit my answers'}
           </button>

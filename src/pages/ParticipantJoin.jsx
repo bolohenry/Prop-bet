@@ -51,51 +51,52 @@ export default function ParticipantJoin() {
     navigate(`/i/${inviteCode}/survey`, { state: { displayName: name, event } });
   }
 
-  if (loading) return <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-brand-950 via-brand-900 to-brand-800"><p className="text-brand-300">Loading...</p></div>;
-  if (!event) return <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-brand-950 via-brand-900 to-brand-800"><p className="text-danger-500">{error || 'Event not found.'}</p></div>;
+  if (loading) return <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-brand-950 via-brand-900 to-brand-800"><p className="text-brand-400">Loading...</p></div>;
+  if (!event) return <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-brand-950 via-brand-900 to-brand-800"><p className="text-danger-400">{error || 'Event not found.'}</p></div>;
 
   const formattedDate = new Date(event.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-brand-950 via-brand-900 to-brand-800 p-4 sm:p-6">
-      <div className="max-w-lg mx-auto pt-8 sm:pt-16">
-        <div className="text-center mb-8">
-          <span className="text-4xl mb-3 block">🥂</span>
-          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">{event.name}</h1>
+    <div className="min-h-screen bg-gradient-to-br from-brand-950 via-brand-900 to-brand-800 p-4 sm:p-8 relative overflow-hidden">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--color-accent-500)_0%,_transparent_50%)] opacity-10" />
+      <div className="max-w-lg mx-auto pt-12 sm:pt-20 relative z-10">
+        <div className="text-center mb-10">
+          <span className="text-5xl mb-4 block">🥂</span>
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-white mb-2 tracking-tight">{event.name}</h1>
           <p className="text-brand-300">{formattedDate}</p>
         </div>
 
         {event.status !== 'open' ? (
-          <div className="bg-warn-500/20 border border-warn-500/30 rounded-2xl p-5 text-center">
-            <span className="text-2xl block mb-2">🔒</span>
+          <div className="bg-warn-500/15 border border-warn-500/20 rounded-2xl p-6 text-center">
+            <span className="text-2xl block mb-3">🔒</span>
             <p className="text-warn-500 font-semibold">Submissions are currently closed for this event.</p>
           </div>
         ) : (
-          <div className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
-            <p className="text-brand-200 text-sm mb-5">Enter your name to get started with the prop bets.</p>
-            <form onSubmit={handleContinue} className="space-y-4">
+          <div className="bg-white/[0.08] backdrop-blur-md border border-white/[0.08] rounded-2xl p-6 sm:p-8">
+            <p className="text-brand-300 text-sm mb-6">Enter your name to get started with the prop bets.</p>
+            <form onSubmit={handleContinue} className="space-y-5">
               <div>
-                <label className="block text-sm font-semibold text-brand-200 mb-1.5">Your display name</label>
+                <label className="block text-sm font-semibold text-brand-200 mb-2">Your display name</label>
                 <input
                   type="text"
                   value={displayName}
                   onChange={e => setDisplayName(e.target.value)}
                   placeholder="e.g. Uncle Bob"
-                  className="w-full bg-white/10 border border-white/10 rounded-xl px-4 py-3.5 text-base text-white placeholder-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                  className="w-full bg-white/[0.06] border border-white/[0.1] rounded-xl px-4 py-3.5 text-base text-white placeholder-brand-400/60 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500/50 transition-all duration-200"
                   autoFocus
                 />
               </div>
               {error && (
-                <div className="bg-danger-500/20 border border-danger-500/30 rounded-xl p-3">
-                  <p className="text-danger-500 text-sm">{error}</p>
+                <div className="bg-danger-500/15 border border-danger-500/20 rounded-xl p-3">
+                  <p className="text-danger-400 text-sm">{error}</p>
                 </div>
               )}
               <button
                 type="submit"
                 disabled={checking}
-                className="w-full bg-brand-500 hover:bg-brand-400 text-white py-3.5 rounded-xl text-base font-bold transition-all disabled:opacity-50 shadow-lg shadow-brand-500/25"
+                className="w-full bg-brand-600 hover:bg-brand-500 text-white py-4 rounded-xl text-base font-bold transition-all duration-200 disabled:opacity-50 shadow-lg shadow-brand-900/40"
               >
-                {checking ? 'Checking...' : 'Continue →'}
+                {checking ? 'Checking...' : 'Continue'}
               </button>
             </form>
           </div>

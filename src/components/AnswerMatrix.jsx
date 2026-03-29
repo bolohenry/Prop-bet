@@ -11,19 +11,19 @@ export default function AnswerMatrix({ submissions, outcomes }) {
   }
 
   return (
-    <div className="overflow-x-auto bg-white rounded-2xl shadow-sm border border-gray-100">
+    <div className="overflow-x-auto bg-white rounded-2xl shadow-sm shadow-gray-900/[0.04]">
       <table className="text-xs min-w-full">
         <thead>
-          <tr className="bg-gray-50 border-b border-gray-100">
-            <th className="text-left px-3 py-2.5 font-semibold text-gray-500 sticky left-0 bg-gray-50 z-10">Name</th>
+          <tr className="border-b border-gray-100">
+            <th className="text-left px-4 py-3 font-semibold text-gray-400 uppercase tracking-wider sticky left-0 bg-white z-10">Name</th>
             {SCORED_QUESTIONS.map(q => (
-              <th key={q.id} className="px-2 py-2.5 font-semibold text-gray-500 text-center whitespace-nowrap">
+              <th key={q.id} className="px-2 py-3 font-semibold text-gray-400 text-center whitespace-nowrap uppercase tracking-wider">
                 Q{q.number}
               </th>
             ))}
           </tr>
-          <tr className="bg-brand-50/50 border-b border-gray-100">
-            <td className="px-3 py-2 font-bold text-brand-700 sticky left-0 bg-brand-50/50 z-10 text-xs">Correct</td>
+          <tr className="border-b border-gray-100 bg-brand-50/40">
+            <td className="px-4 py-2 font-bold text-brand-600 sticky left-0 bg-brand-50/40 z-10 text-xs">Correct</td>
             {SCORED_QUESTIONS.map(q => {
               const outcome = outcomeMap[q.id];
               return (
@@ -40,8 +40,8 @@ export default function AnswerMatrix({ submissions, outcomes }) {
         </thead>
         <tbody className="divide-y divide-gray-50">
           {submissions.map(s => (
-            <tr key={s.display_name} className="hover:bg-gray-50/50 transition-colors">
-              <td className="px-3 py-2.5 font-semibold text-gray-700 whitespace-nowrap sticky left-0 bg-white z-10">{s.display_name}</td>
+            <tr key={s.display_name} className="hover:bg-gray-50/50 transition-colors duration-150">
+              <td className="px-4 py-3 font-semibold text-gray-700 whitespace-nowrap sticky left-0 bg-white z-10">{s.display_name}</td>
               {SCORED_QUESTIONS.map(q => {
                 const answer = s[q.id];
                 const outcome = outcomeMap[q.id];
@@ -49,11 +49,11 @@ export default function AnswerMatrix({ submissions, outcomes }) {
                 const isCorrect = isResolved && outcome.answer === answer;
 
                 return (
-                  <td key={q.id} className={`px-2 py-2.5 text-center font-medium ${
+                  <td key={q.id} className={`px-2 py-3 text-center font-medium ${
                     isResolved
                       ? isCorrect
-                        ? 'text-success-700 bg-success-50'
-                        : 'text-danger-500/60'
+                        ? 'text-success-700 bg-success-50/60'
+                        : 'text-gray-300 line-through'
                       : 'text-gray-500'
                   }`}>
                     {answer || '—'}
