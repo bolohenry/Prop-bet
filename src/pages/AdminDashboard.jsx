@@ -1,77 +1,77 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { getAdminDashboard, updateEventStatus, scoreQuestion, setTieWinner, getCsvUrl } from '../lib/api';
-import { useSSE } from '../lib/useSSE';
-import { QUESTIONS, SCORED_QUESTIONS, QUESTION_MAP } from '../../shared/questions.js';
+import { getEventByAdmin, updateEventStatus, scoreQuestion, setTieWinner, downloadCsv } from '../lib/api';
+import { useRealtimeDashboard } from '../lib/useRealtimeDashboard';
+import { QUESTIONS, SCORED_QUESTIONS } from '../../shared/questions.js';
 import Leaderboard from '../components/Leaderboard';
 import AnswerMatrix from '../components/AnswerMatrix';
 
 export default function AdminDashboard() {
   const { adminCode } = useParams();
-  const [initialData, setInitialData] = useState(null);
+  const [eventMeta, setEventMeta] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    getAdminDashboard(adminCode)
-      .then(setInitialData)
+    getEventByAdmin(adminCode)
+      .then(setEventMeta)
       .catch(err => setError(err.message))
       .finally(() => setLoading(false));
   }, [adminCode]);
 
-  const liveData = useSSE(initialData?.event?.id);
-  const data = liveData || initialData;
+  const { submissions, outcomes, event: liveEvent } = useRealtimeDashboard(eventMeta?.id);
+  const event = liveEvent || eventMeta;
 
   if (loading) return <div className="flex items-center justify-center min-h-screen"><p className="text-gray-400">Loading...</p></div>;
   if (error) return <div className="flex items-center justify-center min-h-screen"><p className="text-red-500">{error}</p></div>;
-  if (!data?.event) return null;
+  if (!event) return null;
 
   return (
     <div className="max-w-4xl mx-auto p-4 pb-12">
-      <h1 className="text-2xl font-bold mb-1">{data.event.name}</h1>
+      <h1 className="text-2xl font-bold mb-1">{event.name}</h1>
       <p className="text-gray-500 text-sm mb-2">
-        {new Date(data.event.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+        {new Date(event.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
       </p>
       <p className="text-xs text-gray-400 mb-6">Admin Dashboard</p>
 
-      <StatusControl adminCode={adminCode} currentStatus={data.event.status} />
+      <StatusControl adminCode={adminCode} currentStatus={event.status} />
 
       <section className="mb-8">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-semibold">Submissions ({data.submissions?.length || 0})</h2>
-          <a
-            href={getCsvUrl(adminCode)}
+          <h2 className="text-lg font-semibold">Submissions ({submissions?.length || 0})</h2>
+          <button
+            onClick={() => downloadCsv(event, submissions || [])}
             className="text-sm bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded font-medium transition-colors"
           >
             Export CSV
-          </a>
+          </button>
         </div>
-        <SubmissionsTable submissions={data.submissions} />
+        <SubmissionsTable submissions={submissions} />
       </section>
 
       <section className="mb-8">
         <h2 className="text-lg font-semibold mb-3">Scoring</h2>
-        <ScoringPanel adminCode={adminCode} outcomes={data.outcomes} submissions={data.submissions} />
+        <ScoringPanel adminCode={adminCode} outcomes={outcomes} submissions={submissions} />
       </section>
 
       <section className="mb-8">
         <h2 className="text-lg font-semibold mb-3">Leaderboard</h2>
-        <Leaderboard submissions={data.submissions} winnerName={data.event.tie_winner_name} />
+        <Leaderboard submissions={submissions} winnerName={event.tie_winner_name} />
       </section>
 
       <section className="mb-8">
         <h2 className="text-lg font-semibold mb-3">Tie Winner</h2>
-        <TieWinnerControl adminCode={adminCode} submissions={data.submissions} currentWinner={data.event.tie_winner_name} />
+        <TieWinnerControl adminCode={adminCode} submissions={submissions} currentWinner={event.tie_winner_name} />
       </section>
 
       <section className="mb-8">
         <h2 className="text-lg font-semibold mb-3">Answer Matrix</h2>
-        <AnswerMatrix submissions={data.submissions} outcomes={data.outcomes} />
+        <AnswerMatrix submissions={submissions} outcomes={outcomes} />
       </section>
 
       <section className="mb-8">
         <h2 className="text-lg font-semibold mb-3">Tie Breaker Answers</h2>
-        <TieBreakerTable submissions={data.submissions} />
+        <TieBreakerTable submissions={submissions} />
       </section>
     </div>
   );
@@ -83,9 +83,7 @@ function StatusControl({ adminCode, currentStatus }) {
 
   async function handleChange(status) {
     setUpdating(true);
-    try {
-      await updateEventStatus(adminCode, status);
-    } catch {}
+    try { await updateEventStatus(adminCode, status); } catch {}
     setUpdating(false);
   }
 
@@ -119,9 +117,7 @@ function StatusControl({ adminCode, currentStatus }) {
 }
 
 function SubmissionsTable({ submissions }) {
-  if (!submissions || submissions.length === 0) {
-    return <p className="text-gray-400 text-sm">No submissions yet.</p>;
-  }
+  if (!submissions || submissions.length === 0) return <p className="text-gray-400 text-sm">No submissions yet.</p>;
 
   return (
     <div className="bg-white border rounded-lg overflow-hidden">
@@ -156,13 +152,7 @@ function ScoringPanel({ adminCode, outcomes, submissions }) {
   return (
     <div className="space-y-3">
       {SCORED_QUESTIONS.map(q => (
-        <ScoringCard
-          key={q.id}
-          question={q}
-          outcome={outcomeMap[q.id]}
-          adminCode={adminCode}
-          submissions={submissions}
-        />
+        <ScoringCard key={q.id} question={q} outcome={outcomeMap[q.id]} adminCode={adminCode} submissions={submissions} />
       ))}
     </div>
   );
@@ -205,7 +195,6 @@ function ScoringCard({ question, outcome, adminCode, submissions }) {
           </span>
         )}
       </div>
-
       <div className="flex flex-wrap gap-2">
         {options.map(opt => (
           <button
@@ -222,7 +211,6 @@ function ScoringCard({ question, outcome, adminCode, submissions }) {
           </button>
         ))}
       </div>
-
       {correctCount !== null && (
         <p className="text-xs text-gray-500 mt-2">{correctCount} of {submissions.length} got this correct</p>
       )}
@@ -235,15 +223,11 @@ function TieWinnerControl({ adminCode, submissions, currentWinner }) {
 
   async function handleSelect(name) {
     setSaving(true);
-    try {
-      await setTieWinner(adminCode, name === currentWinner ? null : name);
-    } catch {}
+    try { await setTieWinner(adminCode, name === currentWinner ? null : name); } catch {}
     setSaving(false);
   }
 
-  if (!submissions || submissions.length === 0) {
-    return <p className="text-gray-400 text-sm">No submissions yet.</p>;
-  }
+  if (!submissions || submissions.length === 0) return <p className="text-gray-400 text-sm">No submissions yet.</p>;
 
   return (
     <div className="bg-white border rounded-lg p-4">
@@ -269,9 +253,7 @@ function TieWinnerControl({ adminCode, submissions, currentWinner }) {
 }
 
 function TieBreakerTable({ submissions }) {
-  if (!submissions || submissions.length === 0) {
-    return <p className="text-gray-400 text-sm">No submissions yet.</p>;
-  }
+  if (!submissions || submissions.length === 0) return <p className="text-gray-400 text-sm">No submissions yet.</p>;
 
   return (
     <div className="bg-white border rounded-lg overflow-hidden">
