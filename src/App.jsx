@@ -5,12 +5,14 @@ import ParticipantJoin from './pages/ParticipantJoin';
 import ParticipantSurvey from './pages/ParticipantSurvey';
 import ParticipantDashboard from './pages/ParticipantDashboard';
 import Home from './pages/Home';
+import About from './pages/About';
 
 export default function App() {
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/about" element={<About />} />
         <Route path="/admin/create" element={<AdminCreate />} />
         <Route path="/admin/:adminCode" element={<AdminDashboard />} />
         <Route path="/i/:inviteCode" element={<ParticipantJoin />} />

@@ -24,7 +24,15 @@ export default function Home() {
           >
             Create new event
           </Link>
-          <ShareButton variant="dark" />
+          <div className="flex items-center gap-3">
+            <Link
+              to="/about"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium border text-brand-400 hover:text-white border-brand-400/20 hover:border-brand-400/40 hover:bg-white/[0.06] transition-all duration-200"
+            >
+              How it works
+            </Link>
+            <ShareButton variant="dark" />
+          </div>
         </div>
       </div>
     </div>
