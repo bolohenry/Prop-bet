@@ -1,8 +1,9 @@
 -- Wedding Prop Bets — Supabase Schema
 -- Run this in your Supabase project: SQL Editor → New Query → paste → Run
 --
--- If you already created the old schema with a q1 column, run this first:
+-- If migrating from an older schema, run these first:
 --   ALTER TABLE submissions DROP COLUMN IF EXISTS q1;
+--   ALTER TABLE events ADD COLUMN IF NOT EXISTS tie_breaker_answer text;
 
 -- 1. Tables
 
@@ -14,6 +15,7 @@ create table events (
   admin_code text unique not null,
   invite_code text unique not null,
   status text not null default 'open',
+  tie_breaker_answer text,
   tie_winner_name text,
   created_at timestamptz not null default now()
 );

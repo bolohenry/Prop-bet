@@ -1,5 +1,6 @@
 import { supabase } from './supabase';
 import { SCORED_QUESTIONS } from '../../shared/questions.js';
+import { computeTieBreakerWinner } from '../../shared/tiebreaker.js';
 
 function nanoid(len = 8) {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -40,7 +41,7 @@ export async function createEvent(name, date) {
 export async function getEventByInvite(inviteCode) {
   const { data, error } = await supabase
     .from('events')
-    .select('id, slug, name, date, status, invite_code, tie_winner_name')
+    .select('id, slug, name, date, status, invite_code, tie_breaker_answer, tie_winner_name')
     .eq('invite_code', inviteCode)
     .single();
   if (error) throw new Error('Event not found');
@@ -156,7 +157,24 @@ export async function scoreQuestion(adminCode, questionId, answer, resolved) {
   return { ok: true };
 }
 
-export async function setTieWinner(adminCode, winnerName) {
+export async function setTieBreakerAnswer(adminCode, correctTime) {
+  const event = await getEventByAdmin(adminCode);
+
+  const submissions = await getSubmissions(event.id);
+  const winnerName = correctTime ? computeTieBreakerWinner(correctTime, submissions) : null;
+
+  const { error } = await supabase
+    .from('events')
+    .update({
+      tie_breaker_answer: correctTime || null,
+      tie_winner_name: winnerName,
+    })
+    .eq('id', event.id);
+  if (error) throw new Error(error.message);
+  return { winnerName };
+}
+
+export async function setTieWinnerOverride(adminCode, winnerName) {
   const event = await getEventByAdmin(adminCode);
   const { error } = await supabase
     .from('events')

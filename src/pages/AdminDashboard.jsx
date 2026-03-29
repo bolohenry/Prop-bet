@@ -1,10 +1,25 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { getEventByAdmin, updateEventStatus, scoreQuestion, setTieWinner, downloadCsv } from '../lib/api';
+import { getEventByAdmin, updateEventStatus, scoreQuestion, setTieBreakerAnswer, setTieWinnerOverride, downloadCsv } from '../lib/api';
 import { useRealtimeDashboard } from '../lib/useRealtimeDashboard';
 import { SCORED_QUESTIONS } from '../../shared/questions.js';
+import { timeToMinutes } from '../../shared/tiebreaker.js';
 import Leaderboard from '../components/Leaderboard';
 import AnswerMatrix from '../components/AnswerMatrix';
+
+const TIME_OPTIONS = (() => {
+  const times = [];
+  for (let hour24 = 21; hour24 <= 28; hour24++) {
+    const h = hour24 % 24;
+    for (let m = 0; m < 60; m += 15) {
+      const hour12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
+      const suffix = h >= 12 && h < 24 ? 'PM' : 'AM';
+      times.push(`${hour12}:${String(m).padStart(2, '0')} ${suffix}`);
+      if (h === 4 && m === 0) return times;
+    }
+  }
+  return times;
+})();
 
 export default function AdminDashboard() {
   const { adminCode } = useParams();
@@ -79,13 +94,13 @@ export default function AdminDashboard() {
           <Leaderboard submissions={submissions} winnerName={event.tie_winner_name} />
         </section>
 
-        {/* Tie Winner */}
+        {/* Tie Breaker */}
         <section>
           <h2 className="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
             <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-accent-400/20 text-accent-500 text-sm">👑</span>
-            Tie Winner
+            Tie Breaker
           </h2>
-          <TieWinnerControl adminCode={adminCode} submissions={submissions} currentWinner={event.tie_winner_name} />
+          <TieBreakerControl adminCode={adminCode} event={event} submissions={submissions} />
         </section>
 
         {/* Answer Matrix */}
@@ -270,61 +285,119 @@ function ScoringCard({ question, outcome, adminCode, submissions }) {
   );
 }
 
-function TieWinnerControl({ adminCode, submissions, currentWinner }) {
+function TieBreakerControl({ adminCode, event, submissions }) {
   const [saving, setSaving] = useState(false);
+  const [overriding, setOverriding] = useState(false);
 
-  async function handleSelect(name) {
+  const correctTime = event?.tie_breaker_answer;
+  const autoWinner = event?.tie_winner_name;
+
+  async function handleTimeChange(time) {
     setSaving(true);
-    try { await setTieWinner(adminCode, name === currentWinner ? null : name); } catch {}
+    try { await setTieBreakerAnswer(adminCode, time || null); } catch {}
     setSaving(false);
+  }
+
+  async function handleOverride(name) {
+    setOverriding(true);
+    try { await setTieWinnerOverride(adminCode, name === autoWinner ? null : name); } catch {}
+    setOverriding(false);
   }
 
   if (!submissions || submissions.length === 0) return <p className="text-gray-400 text-sm">No submissions yet.</p>;
 
-  return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
-      <p className="text-sm text-gray-500 mb-3">Select the tie-break winner (if needed):</p>
-      <div className="flex flex-wrap gap-2">
-        {submissions.map(s => (
-          <button
-            key={s.display_name}
-            onClick={() => handleSelect(s.display_name)}
-            disabled={saving}
-            className={`px-4 py-2.5 rounded-xl text-sm font-bold border-2 transition-all ${
-              currentWinner === s.display_name
-                ? 'bg-warn-500 text-white border-warn-500 shadow-md shadow-warn-500/25'
-                : 'bg-white text-gray-500 border-gray-200 hover:border-warn-500/50'
-            }`}
-          >
-            {s.display_name}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function TieBreakerTable({ submissions }) {
-  if (!submissions || submissions.length === 0) return <p className="text-gray-400 text-sm">No submissions yet.</p>;
+  const correctMin = correctTime ? timeToMinutes(correctTime) : null;
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="bg-gray-50 border-b border-gray-100">
-            <th className="text-left px-4 py-3 font-semibold text-gray-500">Name</th>
-            <th className="text-left px-4 py-3 font-semibold text-gray-500">Tie Breaker Answer</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-50">
-          {submissions.map(s => (
-            <tr key={s.display_name} className="hover:bg-gray-50/50 transition-colors">
-              <td className="px-4 py-3 font-semibold text-gray-800">{s.display_name}</td>
-              <td className="px-4 py-3 text-gray-600">{s.q15}</td>
-            </tr>
+    <div className="space-y-4">
+      {/* Admin selects the actual time */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+        <label className="block text-sm font-bold text-gray-700 mb-2">What time did the bride actually leave?</label>
+        <select
+          value={correctTime || ''}
+          onChange={e => handleTimeChange(e.target.value)}
+          disabled={saving}
+          className={`w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all appearance-none bg-white ${!correctTime ? 'text-gray-400' : 'text-gray-800'}`}
+        >
+          <option value="">Select the actual time...</option>
+          {TIME_OPTIONS.map(t => (
+            <option key={t} value={t}>{t}</option>
           ))}
-        </tbody>
-      </table>
+        </select>
+
+        {correctTime && autoWinner && (
+          <div className="mt-4 bg-warn-50 border border-warn-500/30 rounded-xl p-4">
+            <p className="text-sm font-bold text-warn-600 mb-1">
+              Auto-selected winner: {autoWinner}
+            </p>
+            <p className="text-xs text-gray-500">
+              Closest guess at or after {correctTime} (Price Is Right rules).
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Participant answers table */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="bg-gray-50 border-b border-gray-100">
+              <th className="text-left px-4 py-3 font-semibold text-gray-500">Name</th>
+              <th className="text-left px-4 py-3 font-semibold text-gray-500">Guess</th>
+              {correctMin !== null && <th className="text-right px-4 py-3 font-semibold text-gray-500">Diff</th>}
+              <th className="text-center px-4 py-3 font-semibold text-gray-500 w-16"></th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-50">
+            {submissions.map(s => {
+              const guessMin = timeToMinutes(s.q15);
+              const diff = correctMin !== null && guessMin !== null ? guessMin - correctMin : null;
+              const isWinner = autoWinner === s.display_name;
+              const isEarly = diff !== null && diff < 0;
+
+              return (
+                <tr key={s.display_name} className={`transition-colors ${isWinner ? 'bg-warn-50' : 'hover:bg-gray-50/50'}`}>
+                  <td className="px-4 py-3 font-semibold text-gray-800">
+                    {s.display_name}
+                    {isWinner && <span className="text-warn-600 text-xs ml-1.5 font-bold">★ Winner</span>}
+                  </td>
+                  <td className="px-4 py-3 text-gray-600">{s.q15}</td>
+                  {correctMin !== null && (
+                    <td className={`px-4 py-3 text-right text-xs font-mono ${isEarly ? 'text-danger-500' : 'text-success-600'}`}>
+                      {diff !== null ? (
+                        <>
+                          {diff === 0 ? 'Exact' : diff > 0 ? `+${diff} min` : `${diff} min`}
+                          {isEarly && <span className="ml-1 text-danger-400">(over)</span>}
+                        </>
+                      ) : '—'}
+                    </td>
+                  )}
+                  <td className="px-4 py-3 text-center">
+                    <button
+                      onClick={() => handleOverride(s.display_name)}
+                      disabled={overriding}
+                      title="Manual override"
+                      className={`text-xs px-2 py-1 rounded-lg border transition-all ${
+                        isWinner
+                          ? 'bg-warn-500 text-white border-warn-500'
+                          : 'text-gray-400 border-gray-200 hover:border-warn-400 hover:text-warn-500'
+                      }`}
+                    >
+                      👑
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {correctTime && (
+        <p className="text-xs text-gray-400">
+          Price Is Right rules: closest guess at or after the actual time wins. If everyone guessed too early, the closest overall wins. Use the 👑 button to manually override if needed.
+        </p>
+      )}
     </div>
   );
 }
