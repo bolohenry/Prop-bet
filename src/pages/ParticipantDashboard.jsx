@@ -5,6 +5,7 @@ import { useRealtimeDashboard } from '../lib/useRealtimeDashboard';
 import { QUESTIONS } from '../../shared/questions.js';
 import Leaderboard from '../components/Leaderboard';
 import AnswerMatrix from '../components/AnswerMatrix';
+import ShareButton from '../components/ShareButton';
 
 export default function ParticipantDashboard() {
   const { inviteCode } = useParams();
@@ -114,6 +115,11 @@ export default function ParticipantDashboard() {
             <AnswerMatrix submissions={submissions} outcomes={outcomes} />
           </section>
         )}
+
+        <div className="text-center pt-4 pb-2">
+          <p className="text-gray-400 text-xs mb-3">Know someone planning a wedding?</p>
+          <ShareButton variant="light" />
+        </div>
       </div>
     </div>
   );
