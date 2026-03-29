@@ -14,11 +14,10 @@ export default function Home() {
       </p>
       <Link
         to="/admin/create"
-        className="bg-white text-brand-700 px-8 py-4 rounded-2xl text-lg font-bold hover:bg-brand-50 transition-all shadow-lg shadow-brand-950/40 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
+        className="bg-white text-brand-700 px-8 py-4 rounded-2xl text-lg font-bold hover:bg-brand-50 transition-all shadow-lg shadow-brand-950/30 hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
       >
         Create New Event
       </Link>
-      <p className="text-brand-400 text-sm mt-6">Free &middot; No sign-up required</p>
     </div>
   );
 }
