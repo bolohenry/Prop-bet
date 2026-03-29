@@ -1,4 +1,4 @@
-import { SCORED_QUESTIONS, QUESTION_MAP } from '../../shared/questions.js';
+import { SCORED_QUESTIONS } from '../../shared/questions.js';
 
 export default function AnswerMatrix({ submissions, outcomes }) {
   if (!submissions || submissions.length === 0) {
@@ -7,32 +7,29 @@ export default function AnswerMatrix({ submissions, outcomes }) {
 
   const outcomeMap = {};
   if (outcomes) {
-    for (const o of outcomes) {
-      outcomeMap[o.question_id] = o;
-    }
+    for (const o of outcomes) outcomeMap[o.question_id] = o;
   }
 
   return (
-    <div className="overflow-x-auto bg-white border rounded-lg">
+    <div className="overflow-x-auto bg-white rounded-2xl shadow-sm border border-gray-100">
       <table className="text-xs min-w-full">
         <thead>
-          <tr className="bg-gray-50 border-b">
-            <th className="text-left px-3 py-2 font-medium text-gray-500 sticky left-0 bg-gray-50 z-10">Name</th>
+          <tr className="bg-gray-50 border-b border-gray-100">
+            <th className="text-left px-3 py-2.5 font-semibold text-gray-500 sticky left-0 bg-gray-50 z-10">Name</th>
             {SCORED_QUESTIONS.map(q => (
-              <th key={q.id} className="px-2 py-2 font-medium text-gray-500 text-center whitespace-nowrap">
+              <th key={q.id} className="px-2 py-2.5 font-semibold text-gray-500 text-center whitespace-nowrap">
                 Q{q.number}
               </th>
             ))}
           </tr>
-          {/* Correct answers row */}
-          <tr className="bg-gray-100 border-b">
-            <td className="px-3 py-1 font-medium text-gray-600 sticky left-0 bg-gray-100 z-10 text-xs">Answer</td>
+          <tr className="bg-brand-50/50 border-b border-gray-100">
+            <td className="px-3 py-2 font-bold text-brand-700 sticky left-0 bg-brand-50/50 z-10 text-xs">Correct</td>
             {SCORED_QUESTIONS.map(q => {
               const outcome = outcomeMap[q.id];
               return (
-                <td key={q.id} className="px-2 py-1 text-center">
+                <td key={q.id} className="px-2 py-2 text-center">
                   {outcome?.resolved ? (
-                    <span className="font-semibold text-green-700">{outcome.answer}</span>
+                    <span className="font-bold text-brand-600">{outcome.answer}</span>
                   ) : (
                     <span className="text-gray-300">—</span>
                   )}
@@ -41,23 +38,24 @@ export default function AnswerMatrix({ submissions, outcomes }) {
             })}
           </tr>
         </thead>
-        <tbody className="divide-y">
+        <tbody className="divide-y divide-gray-50">
           {submissions.map(s => (
-            <tr key={s.display_name}>
-              <td className="px-3 py-2 font-medium whitespace-nowrap sticky left-0 bg-white z-10">{s.display_name}</td>
+            <tr key={s.display_name} className="hover:bg-gray-50/50 transition-colors">
+              <td className="px-3 py-2.5 font-semibold text-gray-700 whitespace-nowrap sticky left-0 bg-white z-10">{s.display_name}</td>
               {SCORED_QUESTIONS.map(q => {
                 const answer = s[q.id];
                 const outcome = outcomeMap[q.id];
                 const isResolved = outcome?.resolved;
                 const isCorrect = isResolved && outcome.answer === answer;
 
-                let cellClass = 'text-gray-600';
-                if (isResolved) {
-                  cellClass = isCorrect ? 'text-green-700 font-semibold bg-green-50' : 'text-red-400';
-                }
-
                 return (
-                  <td key={q.id} className={`px-2 py-2 text-center ${cellClass}`}>
+                  <td key={q.id} className={`px-2 py-2.5 text-center font-medium ${
+                    isResolved
+                      ? isCorrect
+                        ? 'text-success-700 bg-success-50'
+                        : 'text-danger-500/60'
+                      : 'text-gray-500'
+                  }`}>
                     {answer || '—'}
                   </td>
                 );

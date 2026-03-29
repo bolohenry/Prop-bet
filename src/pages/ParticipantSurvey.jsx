@@ -23,9 +23,7 @@ export default function ParticipantSurvey() {
     if (!event) {
       getEventByInvite(inviteCode).then(e => {
         setEvent(e);
-        if (!displayName) {
-          navigate(`/i/${inviteCode}`);
-        }
+        if (!displayName) navigate(`/i/${inviteCode}`);
       }).catch(() => navigate(`/i/${inviteCode}`));
     }
   }, [inviteCode, event, displayName, navigate]);
@@ -42,7 +40,7 @@ export default function ParticipantSurvey() {
     const newErrors = {};
     for (const q of QUESTIONS) {
       if (!answers[q.id] || !answers[q.id].trim()) {
-        newErrors[q.id] = 'This field is required';
+        newErrors[q.id] = 'Required';
       }
     }
     if (Object.keys(newErrors).length > 0) {
@@ -63,31 +61,37 @@ export default function ParticipantSurvey() {
     }
   }
 
-  if (!event) return <div className="flex items-center justify-center min-h-screen"><p className="text-gray-400">Loading...</p></div>;
+  if (!event) return <div className="flex items-center justify-center min-h-screen bg-gray-50"><p className="text-gray-400">Loading...</p></div>;
 
   if (event.status !== 'open') {
     return (
-      <div className="max-w-lg mx-auto p-6 pt-12">
-        <h1 className="text-2xl font-bold mb-2">{event.name}</h1>
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <p className="text-yellow-800 font-medium">Submissions are currently closed for this event.</p>
+      <div className="min-h-screen bg-gradient-to-br from-brand-950 via-brand-900 to-brand-800 p-4 sm:p-6 flex items-center justify-center">
+        <div className="text-center">
+          <span className="text-3xl block mb-3">🔒</span>
+          <h1 className="text-2xl font-bold text-white mb-2">{event.name}</h1>
+          <p className="text-warn-500 font-semibold">Submissions are currently closed for this event.</p>
         </div>
       </div>
     );
   }
 
-  return (
-    <div className="max-w-lg mx-auto p-6 pb-12">
-      <h1 className="text-2xl font-bold mb-1">{event.name}</h1>
-      <p className="text-gray-500 mb-6">{new Date(event.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+  const formattedDate = new Date(event.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+  return (
+    <div className="min-h-screen bg-gray-50 pb-8">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-brand-700 to-brand-500 px-4 py-6 sm:py-8 text-center">
+        <h1 className="text-xl sm:text-2xl font-bold text-white mb-1">{event.name}</h1>
+        <p className="text-brand-200 text-sm">{formattedDate}</p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="max-w-lg mx-auto px-4 -mt-4 space-y-4">
         {QUESTIONS.map(q => (
-          <div key={q.id} id={q.id} className="bg-white border rounded-lg p-4">
-            <label className="block text-sm font-medium mb-2">
-              <span className="text-gray-400 mr-1">Q{q.number}.</span>
+          <div key={q.id} id={q.id} className={`bg-white rounded-2xl p-5 shadow-sm border transition-all ${errors[q.id] ? 'border-danger-500 ring-2 ring-danger-500/20' : 'border-gray-100'}`}>
+            <label className="block text-sm font-semibold text-gray-800 mb-3">
+              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-brand-100 text-brand-600 text-xs font-bold mr-2">{q.number}</span>
               {q.text}
-              {q.hint && <span className="text-gray-400 text-xs ml-1">({q.hint})</span>}
+              {q.hint && <span className="text-gray-400 text-xs font-normal ml-1">({q.hint})</span>}
             </label>
 
             {q.type === 'text' && (
@@ -95,8 +99,8 @@ export default function ParticipantSurvey() {
                 type="text"
                 value={answers[q.id]}
                 onChange={e => setAnswer(q.id, e.target.value)}
-                className="w-full border rounded-lg px-4 py-3 text-base"
-                placeholder={q.hint || ''}
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
+                placeholder={q.hint || 'Type your answer...'}
                 readOnly={q.id === 'q2'}
               />
             )}
@@ -108,10 +112,10 @@ export default function ParticipantSurvey() {
                     key={opt}
                     type="button"
                     onClick={() => setAnswer(q.id, opt)}
-                    className={`flex-1 py-3 rounded-lg border text-base font-medium transition-colors ${
+                    className={`flex-1 py-3.5 rounded-xl border-2 text-base font-semibold transition-all ${
                       answers[q.id] === opt
-                        ? 'bg-black text-white border-black'
-                        : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
+                        ? 'bg-brand-500 text-white border-brand-500 shadow-md shadow-brand-500/25'
+                        : 'bg-white text-gray-600 border-gray-200 hover:border-brand-300 hover:bg-brand-50'
                     }`}
                   >
                     {opt}
@@ -127,10 +131,10 @@ export default function ParticipantSurvey() {
                     key={opt}
                     type="button"
                     onClick={() => setAnswer(q.id, opt)}
-                    className={`flex-1 py-3 rounded-lg border text-base font-medium transition-colors ${
+                    className={`flex-1 py-3.5 rounded-xl border-2 text-base font-semibold transition-all ${
                       answers[q.id] === opt
-                        ? 'bg-black text-white border-black'
-                        : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
+                        ? 'bg-brand-500 text-white border-brand-500 shadow-md shadow-brand-500/25'
+                        : 'bg-white text-gray-600 border-gray-200 hover:border-brand-300 hover:bg-brand-50'
                     }`}
                   >
                     {opt}
@@ -140,16 +144,16 @@ export default function ParticipantSurvey() {
             )}
 
             {q.type === 'choice' && (
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-2.5">
                 {q.options.map(opt => (
                   <button
                     key={opt}
                     type="button"
                     onClick={() => setAnswer(q.id, opt)}
-                    className={`py-3 rounded-lg border text-base font-medium transition-colors ${
+                    className={`py-3.5 rounded-xl border-2 text-sm font-semibold transition-all ${
                       answers[q.id] === opt
-                        ? 'bg-black text-white border-black'
-                        : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400'
+                        ? 'bg-brand-500 text-white border-brand-500 shadow-md shadow-brand-500/25'
+                        : 'bg-white text-gray-600 border-gray-200 hover:border-brand-300 hover:bg-brand-50'
                     }`}
                   >
                     {opt}
@@ -158,23 +162,25 @@ export default function ParticipantSurvey() {
               </div>
             )}
 
-            {errors[q.id] && <p className="text-red-600 text-xs mt-1">{errors[q.id]}</p>}
+            {errors[q.id] && <p className="text-danger-500 text-xs mt-2 font-medium">{errors[q.id]}</p>}
           </div>
         ))}
 
         {submitError && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-            <p className="text-red-700 text-sm">{submitError}</p>
+          <div className="bg-danger-50 border border-danger-500/30 rounded-2xl p-4">
+            <p className="text-danger-600 text-sm font-medium">{submitError}</p>
           </div>
         )}
 
-        <button
-          type="submit"
-          disabled={submitting}
-          className="w-full bg-black text-white py-4 rounded-lg text-lg font-medium hover:bg-gray-800 disabled:opacity-50 sticky bottom-4"
-        >
-          {submitting ? 'Submitting...' : 'Submit My Answers'}
-        </button>
+        <div className="sticky bottom-4 pt-2">
+          <button
+            type="submit"
+            disabled={submitting}
+            className="w-full bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-500 hover:to-brand-400 text-white py-4 rounded-2xl text-lg font-bold transition-all disabled:opacity-50 shadow-lg shadow-brand-500/30"
+          >
+            {submitting ? 'Submitting...' : 'Submit My Answers 🎉'}
+          </button>
+        </div>
       </form>
     </div>
   );

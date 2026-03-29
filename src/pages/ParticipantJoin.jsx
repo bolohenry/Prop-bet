@@ -51,44 +51,56 @@ export default function ParticipantJoin() {
     navigate(`/i/${inviteCode}/survey`, { state: { displayName: name, event } });
   }
 
-  if (loading) return <div className="flex items-center justify-center min-h-screen"><p className="text-gray-400">Loading...</p></div>;
-  if (!event) return <div className="flex items-center justify-center min-h-screen"><p className="text-red-500">{error || 'Event not found.'}</p></div>;
+  if (loading) return <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-brand-950 via-brand-900 to-brand-800"><p className="text-brand-300">Loading...</p></div>;
+  if (!event) return <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-brand-950 via-brand-900 to-brand-800"><p className="text-danger-500">{error || 'Event not found.'}</p></div>;
+
+  const formattedDate = new Date(event.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
   return (
-    <div className="max-w-lg mx-auto p-6 pt-12">
-      <h1 className="text-2xl font-bold mb-1">{event.name}</h1>
-      <p className="text-gray-500 mb-6">{new Date(event.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
-
-      {event.status !== 'open' ? (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <p className="text-yellow-800 font-medium">Submissions are currently closed for this event.</p>
+    <div className="min-h-screen bg-gradient-to-br from-brand-950 via-brand-900 to-brand-800 p-4 sm:p-6">
+      <div className="max-w-lg mx-auto pt-8 sm:pt-16">
+        <div className="text-center mb-8">
+          <span className="text-4xl mb-3 block">🥂</span>
+          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">{event.name}</h1>
+          <p className="text-brand-300">{formattedDate}</p>
         </div>
-      ) : (
-        <>
-          <p className="text-gray-600 mb-4">Enter your name to get started with the prop bets!</p>
-          <form onSubmit={handleContinue} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Your Display Name</label>
-              <input
-                type="text"
-                value={displayName}
-                onChange={e => setDisplayName(e.target.value)}
-                placeholder="e.g. Uncle Bob"
-                className="w-full border rounded-lg px-4 py-3 text-base"
-                autoFocus
-              />
-            </div>
-            {error && <p className="text-red-600 text-sm">{error}</p>}
-            <button
-              type="submit"
-              disabled={checking}
-              className="w-full bg-black text-white py-3 rounded-lg text-base font-medium hover:bg-gray-800 disabled:opacity-50"
-            >
-              {checking ? 'Checking...' : 'Continue'}
-            </button>
-          </form>
-        </>
-      )}
+
+        {event.status !== 'open' ? (
+          <div className="bg-warn-500/20 border border-warn-500/30 rounded-2xl p-5 text-center">
+            <span className="text-2xl block mb-2">🔒</span>
+            <p className="text-warn-500 font-semibold">Submissions are currently closed for this event.</p>
+          </div>
+        ) : (
+          <div className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-2xl p-6">
+            <p className="text-brand-200 text-sm mb-5">Enter your name to get started with the prop bets!</p>
+            <form onSubmit={handleContinue} className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-brand-200 mb-1.5">Your Display Name</label>
+                <input
+                  type="text"
+                  value={displayName}
+                  onChange={e => setDisplayName(e.target.value)}
+                  placeholder="e.g. Uncle Bob"
+                  className="w-full bg-white/10 border border-white/10 rounded-xl px-4 py-3.5 text-base text-white placeholder-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                  autoFocus
+                />
+              </div>
+              {error && (
+                <div className="bg-danger-500/20 border border-danger-500/30 rounded-xl p-3">
+                  <p className="text-danger-500 text-sm">{error}</p>
+                </div>
+              )}
+              <button
+                type="submit"
+                disabled={checking}
+                className="w-full bg-brand-500 hover:bg-brand-400 text-white py-3.5 rounded-xl text-base font-bold transition-all disabled:opacity-50 shadow-lg shadow-brand-500/25"
+              >
+                {checking ? 'Checking...' : 'Continue →'}
+              </button>
+            </form>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

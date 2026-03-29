@@ -40,36 +40,49 @@ export default function AdminCreate() {
     const adminLink = `${origin}/admin/${result.adminCode}`;
 
     return (
-      <div className="max-w-lg mx-auto p-6 pt-12">
-        <h1 className="text-2xl font-bold mb-2">Event Created!</h1>
-        <p className="text-gray-500 mb-6">Save both links below. You'll need them to manage your event.</p>
-
-        <div className="space-y-4">
-          <div className="bg-white border rounded-lg p-4">
-            <label className="block text-sm font-medium text-gray-600 mb-1">Participant Invite Link</label>
-            <p className="text-sm text-gray-400 mb-2">Share this with your guests</p>
-            <div className="flex items-center gap-2">
-              <input readOnly value={inviteLink} className="flex-1 bg-gray-50 border rounded px-3 py-2 text-sm font-mono" />
-              <button
-                onClick={() => copyToClipboard(inviteLink, 'invite')}
-                className="px-3 py-2 bg-black text-white rounded text-sm font-medium hover:bg-gray-800 whitespace-nowrap"
-              >
-                {copied.invite ? 'Copied!' : 'Copy'}
-              </button>
+      <div className="min-h-screen bg-gradient-to-br from-brand-950 via-brand-900 to-brand-800 p-4 sm:p-6">
+        <div className="max-w-lg mx-auto pt-8 sm:pt-16">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-success-500/20 mb-4">
+              <span className="text-3xl">🎉</span>
             </div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">Event Created!</h1>
+            <p className="text-brand-300">Save both links below. You'll need them to run your event.</p>
           </div>
 
-          <div className="bg-white border rounded-lg p-4">
-            <label className="block text-sm font-medium text-gray-600 mb-1">Admin Dashboard Link</label>
-            <p className="text-sm text-red-400 mb-2">Keep this private — for event admin only</p>
-            <div className="flex items-center gap-2">
-              <input readOnly value={adminLink} className="flex-1 bg-gray-50 border rounded px-3 py-2 text-sm font-mono" />
-              <button
-                onClick={() => copyToClipboard(adminLink, 'admin')}
-                className="px-3 py-2 bg-black text-white rounded text-sm font-medium hover:bg-gray-800 whitespace-nowrap"
-              >
-                {copied.admin ? 'Copied!' : 'Copy'}
-              </button>
+          <div className="space-y-4">
+            <div className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-2xl p-5">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-lg">🔗</span>
+                <label className="text-sm font-semibold text-white">Participant Invite Link</label>
+              </div>
+              <p className="text-brand-300 text-xs mb-3">Share this with your wedding guests</p>
+              <div className="flex items-center gap-2">
+                <input readOnly value={inviteLink} className="flex-1 bg-white/10 border border-white/10 rounded-xl px-3 py-2.5 text-sm font-mono text-brand-100 focus:outline-none" />
+                <button
+                  onClick={() => copyToClipboard(inviteLink, 'invite')}
+                  className="px-4 py-2.5 bg-brand-500 hover:bg-brand-400 text-white rounded-xl text-sm font-semibold transition-colors whitespace-nowrap"
+                >
+                  {copied.invite ? '✓ Copied' : 'Copy'}
+                </button>
+              </div>
+            </div>
+
+            <div className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-2xl p-5">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-lg">🔒</span>
+                <label className="text-sm font-semibold text-white">Admin Dashboard Link</label>
+              </div>
+              <p className="text-accent-400 text-xs mb-3">Keep this private — for event admin only</p>
+              <div className="flex items-center gap-2">
+                <input readOnly value={adminLink} className="flex-1 bg-white/10 border border-white/10 rounded-xl px-3 py-2.5 text-sm font-mono text-brand-100 focus:outline-none" />
+                <button
+                  onClick={() => copyToClipboard(adminLink, 'admin')}
+                  className="px-4 py-2.5 bg-brand-500 hover:bg-brand-400 text-white rounded-xl text-sm font-semibold transition-colors whitespace-nowrap"
+                >
+                  {copied.admin ? '✓ Copied' : 'Copy'}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -78,39 +91,48 @@ export default function AdminCreate() {
   }
 
   return (
-    <div className="max-w-lg mx-auto p-6 pt-12">
-      <h1 className="text-2xl font-bold mb-2">Create a Wedding Event</h1>
-      <p className="text-gray-500 mb-6">Set up your prop bet event. You'll get invite and admin links after creating.</p>
+    <div className="min-h-screen bg-gradient-to-br from-brand-950 via-brand-900 to-brand-800 p-4 sm:p-6">
+      <div className="max-w-lg mx-auto pt-8 sm:pt-16">
+        <div className="text-center mb-8">
+          <span className="text-4xl mb-3 block">💍</span>
+          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">Create a Wedding Event</h1>
+          <p className="text-brand-300">Set up your prop bet event. You'll get shareable links after creating.</p>
+        </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium mb-1">Wedding Name</label>
-          <input
-            type="text"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            placeholder="e.g. Paul & Marie's Wedding"
-            className="w-full border rounded-lg px-4 py-3 text-base"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium mb-1">Wedding Date</label>
-          <input
-            type="date"
-            value={date}
-            onChange={e => setDate(e.target.value)}
-            className="w-full border rounded-lg px-4 py-3 text-base"
-          />
-        </div>
-        {error && <p className="text-red-600 text-sm">{error}</p>}
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-black text-white py-3 rounded-lg text-base font-medium hover:bg-gray-800 disabled:opacity-50"
-        >
-          {loading ? 'Creating...' : 'Create Event'}
-        </button>
-      </form>
+        <form onSubmit={handleSubmit} className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-2xl p-6 space-y-5">
+          <div>
+            <label className="block text-sm font-semibold text-brand-200 mb-1.5">Wedding Name</label>
+            <input
+              type="text"
+              value={name}
+              onChange={e => setName(e.target.value)}
+              placeholder="e.g. Paul & Marie's Wedding"
+              className="w-full bg-white/10 border border-white/10 rounded-xl px-4 py-3 text-base text-white placeholder-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-brand-200 mb-1.5">Wedding Date</label>
+            <input
+              type="date"
+              value={date}
+              onChange={e => setDate(e.target.value)}
+              className="w-full bg-white/10 border border-white/10 rounded-xl px-4 py-3 text-base text-white focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent [color-scheme:dark]"
+            />
+          </div>
+          {error && (
+            <div className="bg-danger-500/20 border border-danger-500/30 rounded-xl p-3">
+              <p className="text-danger-500 text-sm">{error}</p>
+            </div>
+          )}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-brand-500 hover:bg-brand-400 text-white py-3.5 rounded-xl text-base font-bold transition-all disabled:opacity-50 shadow-lg shadow-brand-500/25 hover:shadow-xl hover:shadow-brand-500/30"
+          >
+            {loading ? 'Creating...' : 'Create Event'}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
