@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { getEventByInvite, checkName, getSubmission } from '../lib/api';
+import NavHeader from '../components/NavHeader';
+import PageTitle from '../components/PageTitle';
+import { LoadingPage } from '../components/Skeleton';
 
 export default function ParticipantJoin() {
   const { inviteCode } = useParams();
@@ -37,7 +40,7 @@ export default function ParticipantJoin() {
     try {
       const { taken } = await checkName(event.id, name);
       if (taken) {
-        setError('That name is already taken. If you already submitted, you should be redirected to your dashboard.');
+        setError('That name is taken — try a different one, or use the exact name you submitted with to view your dashboard.');
         setChecking(false);
         return;
       }
@@ -51,17 +54,18 @@ export default function ParticipantJoin() {
     navigate(`/i/${inviteCode}/survey`, { state: { displayName: name, event } });
   }
 
-  if (loading) return <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-brand-950 via-brand-900 to-brand-800"><p className="text-brand-400">Loading...</p></div>;
+  if (loading) return <LoadingPage dark />;
   if (!event) return <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-brand-950 via-brand-900 to-brand-800"><p className="text-danger-400">{error || 'Event not found.'}</p></div>;
 
   const formattedDate = new Date(event.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-brand-950 via-brand-900 to-brand-800 p-4 sm:p-8 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-brand-950 via-brand-900 to-brand-800 relative overflow-hidden">
+      <PageTitle title={event.name} />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--color-accent-500)_0%,_transparent_50%)] opacity-10" />
-      <div className="max-w-lg mx-auto pt-12 sm:pt-20 relative z-10">
+      <NavHeader variant="dark" />
+      <div className="max-w-lg mx-auto px-4 sm:px-8 pt-8 sm:pt-16 pb-12 relative z-10">
         <div className="text-center mb-10">
-          <span className="text-5xl mb-4 block">🥂</span>
           <h1 className="text-3xl sm:text-4xl font-extrabold text-white mb-2 tracking-tight">{event.name}</h1>
           <p className="text-brand-300">{formattedDate}</p>
         </div>
@@ -73,10 +77,13 @@ export default function ParticipantJoin() {
           </div>
         ) : (
           <div className="bg-white/[0.08] backdrop-blur-md border border-white/[0.08] rounded-2xl p-6 sm:p-8">
-            <p className="text-brand-300 text-sm mb-6">Enter your name to get started with the prop bets.</p>
+            <p className="text-brand-300 text-sm mb-1">Predict what'll happen at the wedding and compete on a live leaderboard.</p>
+            <p className="text-brand-400/60 text-xs mb-6">
+              <Link to="/about" className="underline underline-offset-2 hover:text-brand-300 transition-colors">Learn more about how it works</Link>
+            </p>
             <form onSubmit={handleContinue} className="space-y-5">
               <div>
-                <label className="block text-sm font-semibold text-brand-200 mb-2">Your display name</label>
+                <label className="block text-sm font-semibold text-brand-200 mb-2">Your name</label>
                 <input
                   type="text"
                   value={displayName}

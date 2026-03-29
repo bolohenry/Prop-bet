@@ -1,11 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { getEventByAdmin, updateEventStatus, scoreQuestion, setTieBreakerAnswer, setTieWinnerOverride, downloadCsv } from '../lib/api';
 import { useRealtimeDashboard } from '../lib/useRealtimeDashboard';
-import { SCORED_QUESTIONS } from '../../shared/questions.js';
+import { SCORED_QUESTIONS, TOTAL_SCORED } from '../../shared/questions.js';
 import { timeToMinutes } from '../../shared/tiebreaker.js';
+import NavHeader from '../components/NavHeader';
+import PageTitle from '../components/PageTitle';
 import Leaderboard from '../components/Leaderboard';
 import AnswerMatrix from '../components/AnswerMatrix';
+import { LoadingPage } from '../components/Skeleton';
 
 const TIME_OPTIONS = (() => {
   const times = [];
@@ -37,16 +40,19 @@ export default function AdminDashboard() {
   const { submissions, outcomes, event: liveEvent } = useRealtimeDashboard(eventMeta?.id);
   const event = liveEvent || eventMeta;
 
-  if (loading) return <div className="flex items-center justify-center min-h-screen bg-surface"><p className="text-gray-400">Loading...</p></div>;
+  if (loading) return <LoadingPage />;
   if (error) return <div className="flex items-center justify-center min-h-screen bg-surface"><p className="text-danger-500">{error}</p></div>;
   if (!event) return null;
 
+  const resolvedCount = outcomes ? outcomes.filter(o => o.resolved).length : 0;
   const formattedDate = new Date(event.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
   return (
     <div className="min-h-screen bg-surface pb-12">
-      <div className="bg-gradient-to-r from-brand-900 via-brand-800 to-brand-700 px-4 py-8 sm:py-10">
-        <div className="max-w-4xl mx-auto">
+      <PageTitle title={`${event.name} — admin`} />
+      <div className="bg-gradient-to-r from-brand-900 via-brand-800 to-brand-700">
+        <NavHeader variant="dark" />
+        <div className="max-w-4xl mx-auto px-4 pb-8">
           <p className="text-brand-400 text-xs font-semibold uppercase tracking-widest mb-2">Admin dashboard</p>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white mb-1 tracking-tight">{event.name}</h1>
           <p className="text-brand-300 text-sm">{formattedDate}</p>
@@ -54,6 +60,22 @@ export default function AdminDashboard() {
       </div>
 
       <div className="max-w-4xl mx-auto px-4 -mt-5 space-y-8">
+        {/* Quick stats */}
+        <div className="grid grid-cols-3 gap-3">
+          <div className="bg-white rounded-2xl shadow-sm shadow-gray-900/[0.04] p-4 text-center">
+            <p className="text-2xl font-extrabold text-gray-800">{submissions?.length || 0}</p>
+            <p className="text-xs text-gray-400 mt-0.5">submissions</p>
+          </div>
+          <div className="bg-white rounded-2xl shadow-sm shadow-gray-900/[0.04] p-4 text-center">
+            <p className="text-2xl font-extrabold text-gray-800">{resolvedCount}<span className="text-base font-normal text-gray-300">/{TOTAL_SCORED}</span></p>
+            <p className="text-xs text-gray-400 mt-0.5">scored</p>
+          </div>
+          <div className="bg-white rounded-2xl shadow-sm shadow-gray-900/[0.04] p-4 text-center">
+            <p className="text-2xl font-extrabold text-gray-800 capitalize">{event.status}</p>
+            <p className="text-xs text-gray-400 mt-0.5">status</p>
+          </div>
+        </div>
+
         <StatusControl adminCode={adminCode} currentStatus={event.status} />
 
         <Section title="Submissions" count={submissions?.length || 0}
@@ -66,7 +88,7 @@ export default function AdminDashboard() {
         </Section>
 
         <Section title="Leaderboard">
-          <Leaderboard submissions={submissions} winnerName={event.tie_winner_name} />
+          <Leaderboard submissions={submissions} outcomes={outcomes} winnerName={event.tie_winner_name} />
         </Section>
 
         <Section title="Tie breaker">
@@ -75,10 +97,6 @@ export default function AdminDashboard() {
 
         <Section title="Answer matrix">
           <AnswerMatrix submissions={submissions} outcomes={outcomes} />
-        </Section>
-
-        <Section title="Tie breaker answers">
-          <TieBreakerTable submissions={submissions} />
         </Section>
       </div>
     </div>
@@ -144,7 +162,14 @@ function StatusControl({ adminCode, currentStatus }) {
 }
 
 function SubmissionsTable({ submissions }) {
-  if (!submissions || submissions.length === 0) return <p className="text-gray-400 text-sm">No submissions yet.</p>;
+  if (!submissions || submissions.length === 0) {
+    return (
+      <div className="bg-white rounded-2xl shadow-sm shadow-gray-900/[0.04] p-8 text-center">
+        <div className="text-3xl mb-3 opacity-40">📭</div>
+        <p className="text-gray-400 text-sm">No submissions yet.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-2xl shadow-sm shadow-gray-900/[0.04] overflow-hidden">
@@ -175,21 +200,32 @@ function SubmissionsTable({ submissions }) {
 }
 
 function ScoringPanel({ adminCode, outcomes, submissions }) {
+  const [undoMsg, setUndoMsg] = useState(null);
   const outcomeMap = {};
   if (outcomes) {
     for (const o of outcomes) outcomeMap[o.question_id] = o;
   }
 
+  const showUndo = useCallback((msg) => {
+    setUndoMsg(msg);
+    setTimeout(() => setUndoMsg(null), 3000);
+  }, []);
+
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 relative">
+      {undoMsg && (
+        <div className="sticky top-2 z-30 bg-gray-800 text-white text-sm px-4 py-2.5 rounded-xl shadow-lg animate-pulse text-center">
+          {undoMsg}
+        </div>
+      )}
       {SCORED_QUESTIONS.map(q => (
-        <ScoringCard key={q.id} question={q} outcome={outcomeMap[q.id]} adminCode={adminCode} submissions={submissions} />
+        <ScoringCard key={q.id} question={q} outcome={outcomeMap[q.id]} adminCode={adminCode} submissions={submissions} onUndo={showUndo} />
       ))}
     </div>
   );
 }
 
-function ScoringCard({ question, outcome, adminCode, submissions }) {
+function ScoringCard({ question, outcome, adminCode, submissions, onUndo }) {
   const [saving, setSaving] = useState(false);
   const isResolved = outcome?.resolved;
   const currentAnswer = outcome?.answer;
@@ -207,6 +243,7 @@ function ScoringCard({ question, outcome, adminCode, submissions }) {
     try {
       if (isResolved && currentAnswer === answer) {
         await scoreQuestion(adminCode, question.id, null, false);
+        onUndo(`Q${question.number} unscored — tap again to re-score`);
       } else {
         await scoreQuestion(adminCode, question.id, answer, true);
       }
@@ -275,7 +312,14 @@ function TieBreakerControl({ adminCode, event, submissions }) {
     setOverriding(false);
   }
 
-  if (!submissions || submissions.length === 0) return <p className="text-gray-400 text-sm">No submissions yet.</p>;
+  if (!submissions || submissions.length === 0) {
+    return (
+      <div className="bg-white rounded-2xl shadow-sm shadow-gray-900/[0.04] p-8 text-center">
+        <div className="text-3xl mb-3 opacity-40">📭</div>
+        <p className="text-gray-400 text-sm">No submissions yet.</p>
+      </div>
+    );
+  }
 
   const correctMin = correctTime ? timeToMinutes(correctTime) : null;
 
@@ -283,17 +327,22 @@ function TieBreakerControl({ adminCode, event, submissions }) {
     <div className="space-y-4">
       <div className="bg-white rounded-2xl shadow-sm shadow-gray-900/[0.04] p-6">
         <label className="block text-sm font-semibold text-gray-700 mb-2">What time did the bride actually leave?</label>
-        <select
-          value={correctTime || ''}
-          onChange={e => handleTimeChange(e.target.value)}
-          disabled={saving}
-          className={`w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 transition-all duration-200 appearance-none bg-white ${!correctTime ? 'text-gray-400' : 'text-gray-800'}`}
-        >
-          <option value="">Select the actual time...</option>
-          {TIME_OPTIONS.map(t => (
-            <option key={t} value={t}>{t}</option>
-          ))}
-        </select>
+        <div className="relative">
+          <select
+            value={correctTime || ''}
+            onChange={e => handleTimeChange(e.target.value)}
+            disabled={saving}
+            className={`w-full border border-gray-200 rounded-xl px-4 py-3 pr-10 text-base focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 transition-all duration-200 appearance-none bg-white ${!correctTime ? 'text-gray-400' : 'text-gray-800'}`}
+          >
+            <option value="">Select the actual time...</option>
+            {TIME_OPTIONS.map(t => (
+              <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
+          <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
+        </div>
 
         {correctTime && autoWinner && (
           <div className="mt-4 bg-accent-50 border border-accent-200 rounded-xl p-4">
@@ -367,31 +416,6 @@ function TieBreakerControl({ adminCode, event, submissions }) {
           Price Is Right rules: closest guess at or after the actual time wins. If everyone guessed too early, the closest overall wins. Use the 👑 button to manually override if needed.
         </p>
       )}
-    </div>
-  );
-}
-
-function TieBreakerTable({ submissions }) {
-  if (!submissions || submissions.length === 0) return <p className="text-gray-400 text-sm">No submissions yet.</p>;
-
-  return (
-    <div className="bg-white rounded-2xl shadow-sm shadow-gray-900/[0.04] overflow-hidden">
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b border-gray-100">
-            <th className="text-left px-5 py-3 font-semibold text-gray-400 text-xs uppercase tracking-wider">Name</th>
-            <th className="text-left px-5 py-3 font-semibold text-gray-400 text-xs uppercase tracking-wider">Tie breaker answer</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-50">
-          {submissions.map(s => (
-            <tr key={s.display_name} className="hover:bg-gray-50/50 transition-colors duration-150">
-              <td className="px-5 py-3.5 font-semibold text-gray-800">{s.display_name}</td>
-              <td className="px-5 py-3.5 text-gray-600">{s.q15}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
     </div>
   );
 }

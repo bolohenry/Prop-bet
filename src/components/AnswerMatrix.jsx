@@ -53,7 +53,7 @@ export default function AnswerMatrix({ submissions, outcomes }) {
                     isResolved
                       ? isCorrect
                         ? 'text-success-700 bg-success-50/60'
-                        : 'text-gray-300 line-through'
+                        : 'text-gray-300'
                       : 'text-gray-500'
                   }`}>
                     {answer || '—'}

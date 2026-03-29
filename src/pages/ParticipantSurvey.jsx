@@ -1,7 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { getEventByInvite, submitAnswers } from '../lib/api';
-import { QUESTIONS } from '../../shared/questions.js';
+import { QUESTIONS, SURVEY_QUESTIONS } from '../../shared/questions.js';
+import NavHeader from '../components/NavHeader';
+import PageTitle from '../components/PageTitle';
+import { LoadingPage } from '../components/Skeleton';
 
 const TIME_OPTIONS = (() => {
   const times = [];
@@ -16,6 +19,14 @@ const TIME_OPTIONS = (() => {
   }
   return times;
 })();
+
+function ChevronDown() {
+  return (
+    <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="6 9 12 15 18 9" />
+    </svg>
+  );
+}
 
 export default function ParticipantSurvey() {
   const { inviteCode } = useParams();
@@ -42,6 +53,11 @@ export default function ParticipantSurvey() {
     }
   }, [inviteCode, event, displayName, navigate]);
 
+  const progress = useMemo(() => {
+    const answered = SURVEY_QUESTIONS.filter(q => answers[q.id] && answers[q.id].trim()).length;
+    return Math.round((answered / SURVEY_QUESTIONS.length) * 100);
+  }, [answers]);
+
   function setAnswer(qId, value) {
     setAnswers(prev => ({ ...prev, [qId]: value }));
     setErrors(prev => ({ ...prev, [qId]: '' }));
@@ -59,8 +75,10 @@ export default function ParticipantSurvey() {
     }
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
-      const firstErrorQ = QUESTIONS.find(q => newErrors[q.id]);
-      document.getElementById(firstErrorQ.id)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const firstErrorQ = SURVEY_QUESTIONS.find(q => newErrors[q.id]);
+      if (firstErrorQ) {
+        document.getElementById(firstErrorQ.id)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
       return;
     }
 
@@ -75,11 +93,11 @@ export default function ParticipantSurvey() {
     }
   }
 
-  if (!event) return <div className="flex items-center justify-center min-h-screen bg-surface"><p className="text-gray-400">Loading...</p></div>;
+  if (!event) return <LoadingPage />;
 
   if (event.status !== 'open') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-brand-950 via-brand-900 to-brand-800 p-4 sm:p-8 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-brand-950 via-brand-900 to-brand-800 flex items-center justify-center p-8">
         <div className="text-center">
           <span className="text-3xl block mb-3">🔒</span>
           <h1 className="text-2xl font-bold text-white mb-2">{event.name}</h1>
@@ -93,13 +111,24 @@ export default function ParticipantSurvey() {
 
   return (
     <div className="min-h-screen bg-surface pb-8">
+      <PageTitle title={`${event.name} — survey`} />
+
+      {/* Progress bar */}
+      <div className="fixed top-0 left-0 right-0 z-50 h-1 bg-gray-200">
+        <div
+          className="h-full bg-brand-500 transition-all duration-300 ease-out"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+
       <div className="bg-gradient-to-r from-brand-800 via-brand-700 to-brand-600 px-4 py-8 sm:py-10 text-center">
         <h1 className="text-2xl sm:text-3xl font-extrabold text-white mb-1 tracking-tight">{event.name}</h1>
         <p className="text-brand-300 text-sm">{formattedDate}</p>
+        <p className="text-brand-400/70 text-xs mt-2">Playing as <span className="text-brand-200 font-semibold">{displayName}</span></p>
       </div>
 
       <form onSubmit={handleSubmit} className="max-w-lg mx-auto px-4 -mt-5 space-y-4">
-        {QUESTIONS.map(q => (
+        {SURVEY_QUESTIONS.map(q => (
           <div key={q.id} id={q.id} className={`bg-white rounded-2xl p-5 sm:p-6 shadow-sm border-2 transition-all duration-200 ${errors[q.id] ? 'border-danger-400 shadow-danger-100' : 'border-transparent shadow-gray-900/[0.04]'}`}>
             <label className="block text-sm font-semibold text-gray-800 mb-3">
               <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-brand-100 text-brand-600 text-xs font-bold mr-2">{q.number}</span>
@@ -113,8 +142,7 @@ export default function ParticipantSurvey() {
                 value={answers[q.id]}
                 onChange={e => setAnswer(q.id, e.target.value)}
                 className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 transition-all duration-200"
-                placeholder={q.hint || 'Type your answer...'}
-                readOnly={q.id === 'q2'}
+                placeholder="Type your answer..."
               />
             )}
 
@@ -176,16 +204,19 @@ export default function ParticipantSurvey() {
             )}
 
             {q.type === 'time' && (
-              <select
-                value={answers[q.id]}
-                onChange={e => setAnswer(q.id, e.target.value)}
-                className={`w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 transition-all duration-200 appearance-none bg-white ${!answers[q.id] ? 'text-gray-400' : 'text-gray-800'}`}
-              >
-                <option value="">Select a time...</option>
-                {TIME_OPTIONS.map(t => (
-                  <option key={t} value={t}>{t}</option>
-                ))}
-              </select>
+              <div className="relative">
+                <select
+                  value={answers[q.id]}
+                  onChange={e => setAnswer(q.id, e.target.value)}
+                  className={`w-full border border-gray-200 rounded-xl px-4 py-3 pr-10 text-base focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 transition-all duration-200 appearance-none bg-white ${!answers[q.id] ? 'text-gray-400' : 'text-gray-800'}`}
+                >
+                  <option value="">Select a time...</option>
+                  {TIME_OPTIONS.map(t => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
+                </select>
+                <ChevronDown />
+              </div>
             )}
 
             {errors[q.id] && <p className="text-danger-500 text-xs mt-2 font-medium">{errors[q.id]}</p>}

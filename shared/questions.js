@@ -1,5 +1,5 @@
 export const QUESTIONS = [
-  { id: 'q2', number: 1, text: "Your name", type: 'text', scored: false },
+  { id: 'q2', number: 1, text: "Your name", type: 'text', scored: false, isName: true },
   { id: 'q3', number: 2, text: "Will there be a neon sign?", type: 'yesno', scored: true },
   { id: 'q4', number: 3, text: "Will there be a photo booth?", type: 'yesno', scored: true },
   { id: 'q5', number: 4, text: "Will there be a sweetheart table?", type: 'yesno', scored: true },
@@ -15,5 +15,7 @@ export const QUESTIONS = [
   { id: 'q15', number: 14, text: "Tie breaker — what time will the bride leave the after party?", hint: "Price is Right rules", type: 'time', scored: false },
 ];
 
+export const SURVEY_QUESTIONS = QUESTIONS.filter(q => !q.isName);
 export const SCORED_QUESTIONS = QUESTIONS.filter(q => q.scored);
 export const QUESTION_MAP = Object.fromEntries(QUESTIONS.map(q => [q.id, q]));
+export const TOTAL_SCORED = SCORED_QUESTIONS.length;

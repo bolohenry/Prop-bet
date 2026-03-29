@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useInView } from '../lib/useInView';
-import { SCORED_QUESTIONS } from '../../shared/questions.js';
+import NavHeader from '../components/NavHeader';
+import PageTitle from '../components/PageTitle';
 
 function FadeIn({ children, className = '', delay = 0 }) {
   const [ref, inView] = useInView();
@@ -47,14 +48,14 @@ const SAMPLE_QUESTIONS = [
 export default function About() {
   return (
     <div className="min-h-screen bg-surface text-gray-800">
+      <PageTitle title="How it works" />
+
       {/* Hero */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-brand-950 via-brand-900 to-brand-800 px-6 py-24 sm:py-32 text-center">
+      <section className="relative overflow-hidden bg-gradient-to-br from-brand-950 via-brand-900 to-brand-800">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--color-brand-800)_0%,_transparent_50%)] opacity-60" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_var(--color-accent-500)_0%,_transparent_40%)] opacity-10" />
-        <div className="relative z-10 max-w-2xl mx-auto">
-          <FadeIn>
-            <span className="text-6xl block mb-6">🎰</span>
-          </FadeIn>
+        <NavHeader variant="dark" />
+        <div className="relative z-10 max-w-2xl mx-auto px-6 py-20 sm:py-28 text-center">
           <FadeIn delay={100}>
             <h1 className="text-4xl sm:text-5xl font-extrabold text-white mb-5 tracking-tight leading-[1.15]">
               Weddings are fun.<br />
@@ -169,8 +170,8 @@ export default function About() {
           <div className="grid gap-6 sm:grid-cols-2">
             {[
               { icon: '📝', title: 'One submission', text: 'You get one shot. Once you submit your answers, they\'re locked in — no edits, no second-guessing.' },
-              { icon: '🎯', title: 'One point each', text: 'Questions 2–13 are scored. Each correct answer earns one point. Simple.' },
-              { icon: '⏱️', title: 'Tie breaker', text: 'If two players tie on points, the tie breaker kicks in: closest guess to the actual time the bride leaves the after party, Price is Right rules — you can\'t go under.' },
+              { icon: '🎯', title: 'One point each', text: 'There are 12 scored questions. Each correct answer earns one point. That\'s it.' },
+              { icon: '⏱️', title: 'Tie breaker', text: 'If two players tie on points, the tie breaker kicks in: closest guess to the actual time the bride leaves the after party. Price is Right rules — you can\'t go under.' },
               { icon: '👑', title: 'Winner takes all', text: 'Highest score wins. If there\'s still a tie after the tie breaker, the host makes the final call.' },
               { icon: '📊', title: 'Live updates', text: 'As the host scores each question during the wedding, your dashboard updates in real time. Watch the leaderboard shift.' },
               { icon: '🔒', title: 'No peeking', text: 'You can only see the dashboard after you\'ve submitted your own answers. No copying.' },

@@ -1,8 +1,16 @@
-export default function Leaderboard({ submissions, winnerName, currentUser }) {
+import { TOTAL_SCORED } from '../../shared/questions.js';
+
+export default function Leaderboard({ submissions, outcomes, winnerName, currentUser }) {
   if (!submissions || submissions.length === 0) {
-    return <p className="text-gray-400 text-sm">No submissions yet.</p>;
+    return (
+      <div className="bg-white rounded-2xl shadow-sm shadow-gray-900/[0.04] p-8 text-center">
+        <div className="text-3xl mb-3 opacity-40">📭</div>
+        <p className="text-gray-400 text-sm">No submissions yet.</p>
+      </div>
+    );
   }
 
+  const resolved = outcomes ? outcomes.filter(o => o.resolved).length : 0;
   const sorted = [...submissions].sort((a, b) => b.total_points - a.total_points || new Date(a.submitted_at) - new Date(b.submitted_at));
 
   return (
@@ -12,7 +20,9 @@ export default function Leaderboard({ submissions, winnerName, currentUser }) {
           <tr className="border-b border-gray-100">
             <th className="text-left px-5 py-3 font-semibold text-gray-400 text-xs uppercase tracking-wider w-10">#</th>
             <th className="text-left px-5 py-3 font-semibold text-gray-400 text-xs uppercase tracking-wider">Name</th>
-            <th className="text-right px-5 py-3 font-semibold text-gray-400 text-xs uppercase tracking-wider">Pts</th>
+            <th className="text-right px-5 py-3 font-semibold text-gray-400 text-xs uppercase tracking-wider">
+              Pts{resolved > 0 && <span className="font-normal text-gray-300">/{resolved}</span>}
+            </th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-50">

@@ -1,5 +1,8 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { createEvent } from '../lib/api';
+import NavHeader from '../components/NavHeader';
+import PageTitle from '../components/PageTitle';
 
 export default function AdminCreate() {
   const [name, setName] = useState('');
@@ -40,9 +43,11 @@ export default function AdminCreate() {
     const adminLink = `${origin}/admin/${result.adminCode}`;
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-brand-950 via-brand-900 to-brand-800 p-4 sm:p-8 relative overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-brand-950 via-brand-900 to-brand-800 relative overflow-hidden">
+        <PageTitle title="Event created" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--color-accent-500)_0%,_transparent_50%)] opacity-10" />
-        <div className="max-w-lg mx-auto pt-12 sm:pt-20 relative z-10">
+        <NavHeader variant="dark" />
+        <div className="max-w-lg mx-auto px-4 sm:px-8 pt-8 sm:pt-16 pb-12 relative z-10">
           <div className="text-center mb-10">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-success-500/20 mb-5">
               <span className="text-3xl">🎉</span>
@@ -51,7 +56,7 @@ export default function AdminCreate() {
             <p className="text-brand-300 text-base">Save both links below — you'll need them to run your event.</p>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-4 mb-8">
             <div className="bg-white/[0.08] backdrop-blur-md border border-white/[0.08] rounded-2xl p-6">
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-base">🔗</span>
@@ -86,17 +91,29 @@ export default function AdminCreate() {
               </div>
             </div>
           </div>
+
+          <div className="bg-warn-500/15 border border-warn-500/20 rounded-xl p-4 mb-6">
+            <p className="text-warn-500 text-xs">Save your admin link somewhere safe. If you lose it, there's no way to recover access to your event.</p>
+          </div>
+
+          <Link
+            to={`/admin/${result.adminCode}`}
+            className="block w-full bg-brand-600 hover:bg-brand-500 text-white py-4 rounded-xl text-base font-bold transition-all duration-200 shadow-lg shadow-brand-900/40 text-center"
+          >
+            Open admin dashboard →
+          </Link>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-brand-950 via-brand-900 to-brand-800 p-4 sm:p-8 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-brand-950 via-brand-900 to-brand-800 relative overflow-hidden">
+      <PageTitle title="Create event" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--color-accent-500)_0%,_transparent_50%)] opacity-10" />
-      <div className="max-w-lg mx-auto pt-12 sm:pt-20 relative z-10">
+      <NavHeader variant="dark" />
+      <div className="max-w-lg mx-auto px-4 sm:px-8 pt-8 sm:pt-16 pb-12 relative z-10">
         <div className="text-center mb-10">
-          <span className="text-5xl mb-4 block">💍</span>
           <h1 className="text-3xl sm:text-4xl font-extrabold text-white mb-3 tracking-tight">Create a wedding event</h1>
           <p className="text-brand-300 text-base">Set up your prop bet event — you'll get shareable links after creating.</p>
         </div>
@@ -108,7 +125,7 @@ export default function AdminCreate() {
               type="text"
               value={name}
               onChange={e => setName(e.target.value)}
-              placeholder="e.g. Paul & Marie's Wedding"
+              placeholder="e.g. Paul & Marie's wedding"
               className="w-full bg-white/[0.06] border border-white/[0.1] rounded-xl px-4 py-3.5 text-base text-white placeholder-brand-400/60 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500/50 transition-all duration-200"
             />
           </div>
