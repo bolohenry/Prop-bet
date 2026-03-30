@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { getEventByInvite, checkName, getSubmission } from '../lib/api';
 import PageTitle from '../components/PageTitle';
 import { LoadingPage } from '../components/Skeleton';
@@ -73,10 +73,7 @@ export default function ParticipantJoin() {
           </div>
         ) : (
           <div className="bg-white/[0.08] backdrop-blur-md border border-white/[0.08] rounded-2xl p-6 sm:p-8">
-            <p className="text-brand-300 text-sm mb-1">Predict what'll happen at the wedding and compete on a live leaderboard.</p>
-            <p className="text-brand-400/60 text-xs mb-6">
-              <Link to="/about" className="underline underline-offset-2 hover:text-brand-300 transition-colors">Learn more about how it works</Link>
-            </p>
+            <p className="text-brand-300 text-sm mb-6">Place your bets and see how you stack up.</p>
             <form onSubmit={handleContinue} className="space-y-5">
               <div>
                 <label className="block text-sm font-semibold text-brand-200 mb-2">Your name</label>
