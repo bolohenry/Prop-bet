@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createEvent } from '../lib/api';
-import NavHeader from '../components/NavHeader';
 import PageTitle from '../components/PageTitle';
 
 export default function AdminCreate() {
@@ -45,7 +44,6 @@ export default function AdminCreate() {
       <div className="min-h-screen bg-gradient-to-br from-brand-950 via-brand-900 to-brand-800 relative overflow-hidden">
         <PageTitle title="Event created" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--color-accent-500)_0%,_transparent_50%)] opacity-10" />
-        <NavHeader variant="dark" />
         <div className="max-w-lg mx-auto px-4 sm:px-8 pt-8 sm:pt-16 pb-12 relative z-10">
           <div className="text-center mb-10">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-success-500/20 mb-5">
@@ -110,7 +108,6 @@ export default function AdminCreate() {
     <div className="min-h-screen bg-gradient-to-br from-brand-950 via-brand-900 to-brand-800 relative overflow-hidden">
       <PageTitle title="Create event" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--color-accent-500)_0%,_transparent_50%)] opacity-10" />
-      <NavHeader variant="dark" />
       <div className="max-w-lg mx-auto px-4 sm:px-8 pt-8 sm:pt-16 pb-12 relative z-10">
         <div className="text-center mb-10">
           <h1 className="text-3xl sm:text-4xl font-extrabold text-white mb-3 tracking-tight">Create a wedding event</h1>

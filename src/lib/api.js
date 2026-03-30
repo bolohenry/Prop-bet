@@ -23,7 +23,7 @@ export async function createEvent(name) {
 
   const { data: event, error } = await supabase
     .from('events')
-    .insert({ slug, name, admin_code: adminCode, invite_code: inviteCode })
+    .insert({ slug, name, date: '', admin_code: adminCode, invite_code: inviteCode })
     .select()
     .single();
   if (error) throw new Error(error.message);

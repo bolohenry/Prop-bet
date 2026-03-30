@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { getEventByInvite, getSubmission } from '../lib/api';
 import { useRealtimeDashboard } from '../lib/useRealtimeDashboard';
 import { SURVEY_QUESTIONS } from '../../shared/questions.js';
-import NavHeader from '../components/NavHeader';
 import PageTitle from '../components/PageTitle';
 import Leaderboard from '../components/Leaderboard';
 import AnswerMatrix from '../components/AnswerMatrix';
@@ -61,8 +60,7 @@ export default function ParticipantDashboard() {
     <div className="min-h-screen bg-surface pb-12">
       <PageTitle title={`${event.name} — dashboard`} />
       <div className="bg-gradient-to-r from-brand-800 via-brand-700 to-brand-600 px-4 py-8 sm:py-10">
-        <NavHeader variant="dark" />
-        <div className="max-w-3xl mx-auto mt-2">
+        <div className="max-w-3xl mx-auto">
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white mb-1 tracking-tight">{event.name}</h1>
         </div>
       </div>

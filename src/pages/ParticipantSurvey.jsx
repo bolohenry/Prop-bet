@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { getEventByInvite, submitAnswers } from '../lib/api';
 import { QUESTIONS, SURVEY_QUESTIONS } from '../../shared/questions.js';
-import NavHeader from '../components/NavHeader';
 import PageTitle from '../components/PageTitle';
 import { LoadingPage } from '../components/Skeleton';
 

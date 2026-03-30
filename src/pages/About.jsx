@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
 import { useInView } from '../lib/useInView';
-import NavHeader from '../components/NavHeader';
 import PageTitle from '../components/PageTitle';
 
 function FadeIn({ children, className = '', delay = 0 }) {
@@ -54,7 +53,6 @@ export default function About() {
       <section className="relative overflow-hidden bg-gradient-to-br from-brand-950 via-brand-900 to-brand-800">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--color-brand-800)_0%,_transparent_50%)] opacity-60" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_var(--color-accent-500)_0%,_transparent_40%)] opacity-10" />
-        <NavHeader variant="dark" />
         <div className="relative z-10 max-w-2xl mx-auto px-6 py-20 sm:py-28 text-center">
           <FadeIn delay={100}>
             <h1 className="text-4xl sm:text-5xl font-extrabold text-white mb-5 tracking-tight leading-[1.15]">

@@ -4,7 +4,6 @@ import { getEventByAdmin, updateEventStatus, scoreQuestion, setTieBreakerAnswer,
 import { useRealtimeDashboard } from '../lib/useRealtimeDashboard';
 import { SCORED_QUESTIONS, TOTAL_SCORED } from '../../shared/questions.js';
 import { timeToMinutes } from '../../shared/tiebreaker.js';
-import NavHeader from '../components/NavHeader';
 import PageTitle from '../components/PageTitle';
 import Leaderboard from '../components/Leaderboard';
 import AnswerMatrix from '../components/AnswerMatrix';
@@ -50,8 +49,7 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-surface pb-12">
       <PageTitle title={`${event.name} — admin`} />
       <div className="bg-gradient-to-r from-brand-900 via-brand-800 to-brand-700">
-        <NavHeader variant="dark" />
-        <div className="max-w-4xl mx-auto px-4 pb-8">
+        <div className="max-w-4xl mx-auto px-4 py-8">
           <p className="text-brand-400 text-xs font-semibold uppercase tracking-widest mb-2">Admin dashboard</p>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white mb-1 tracking-tight">{event.name}</h1>
         </div>
