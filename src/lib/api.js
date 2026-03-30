@@ -161,7 +161,17 @@ export async function setTieBreakerAnswer(adminCode, correctTime) {
   const event = await getEventByAdmin(adminCode);
 
   const submissions = await getSubmissions(event.id);
-  const winnerName = correctTime ? computeTieBreakerWinner(correctTime, submissions) : null;
+
+  let winnerName = null;
+  if (correctTime && submissions.length >= 2) {
+    const sorted = [...submissions].sort((a, b) => b.total_points - a.total_points);
+    const topScore = sorted[0].total_points;
+    const tiedForFirst = sorted.filter(s => s.total_points === topScore);
+
+    if (tiedForFirst.length > 1) {
+      winnerName = computeTieBreakerWinner(correctTime, tiedForFirst);
+    }
+  }
 
   const { error } = await supabase
     .from('events')
