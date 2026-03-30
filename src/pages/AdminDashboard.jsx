@@ -9,19 +9,17 @@ import Leaderboard from '../components/Leaderboard';
 import AnswerMatrix from '../components/AnswerMatrix';
 import { LoadingPage } from '../components/Skeleton';
 
-const TIME_OPTIONS = (() => {
-  const times = [];
-  for (let hour24 = 21; hour24 <= 28; hour24++) {
-    const h = hour24 % 24;
-    for (let m = 0; m < 60; m += 15) {
-      const hour12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
-      const suffix = h >= 12 && h < 24 ? 'PM' : 'AM';
-      times.push(`${hour12}:${String(m).padStart(2, '0')} ${suffix}`);
-      if (h === 4 && m === 0) return times;
-    }
-  }
-  return times;
-})();
+function parseTimeString(str) {
+  if (!str) return { hour: '', minute: '', period: 'PM' };
+  const match = str.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (!match) return { hour: '', minute: '', period: 'PM' };
+  return { hour: match[1], minute: match[2], period: match[3].toUpperCase() };
+}
+
+function formatTimeString(hour, minute, period) {
+  if (!hour || minute === '') return '';
+  return `${hour}:${String(minute).padStart(2, '0')} ${period}`;
+}
 
 export default function AdminDashboard() {
   const { adminCode } = useParams();
@@ -296,9 +294,30 @@ function TieBreakerControl({ adminCode, event, submissions }) {
   const correctTime = event?.tie_breaker_answer;
   const autoWinner = event?.tie_winner_name;
 
-  async function handleTimeChange(time) {
+  const parsed = parseTimeString(correctTime);
+  const [hour, setHour] = useState(parsed.hour);
+  const [minute, setMinute] = useState(parsed.minute);
+  const [period, setPeriod] = useState(parsed.period);
+
+  useEffect(() => {
+    const p = parseTimeString(correctTime);
+    setHour(p.hour);
+    setMinute(p.minute);
+    setPeriod(p.period);
+  }, [correctTime]);
+
+  async function handleSaveTime() {
+    const formatted = formatTimeString(hour, minute, period);
+    if (!formatted) return;
     setSaving(true);
-    try { await setTieBreakerAnswer(adminCode, time || null); } catch {}
+    try { await setTieBreakerAnswer(adminCode, formatted); } catch {}
+    setSaving(false);
+  }
+
+  async function handleClearTime() {
+    setSaving(true);
+    try { await setTieBreakerAnswer(adminCode, null); } catch {}
+    setHour(''); setMinute(''); setPeriod('PM');
     setSaving(false);
   }
 
@@ -314,22 +333,57 @@ function TieBreakerControl({ adminCode, event, submissions }) {
   return (
     <div className="space-y-4">
       <div className="bg-white rounded-2xl shadow-sm shadow-gray-900/[0.04] p-6">
-        <label className="block text-sm font-semibold text-gray-700 mb-2">What time did the bride actually leave?</label>
-        <div className="relative">
-          <select
-            value={correctTime || ''}
-            onChange={e => handleTimeChange(e.target.value)}
-            disabled={saving}
-            className={`w-full border border-gray-200 rounded-xl px-4 py-3 pr-10 text-base focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 transition-all duration-200 appearance-none bg-white ${!correctTime ? 'text-gray-400' : 'text-gray-800'}`}
-          >
-            <option value="">Select the actual time...</option>
-            {TIME_OPTIONS.map(t => (
-              <option key={t} value={t}>{t}</option>
+        <label className="block text-sm font-semibold text-gray-700 mb-3">What time did the bride actually leave?</label>
+        <div className="flex items-center gap-2">
+          <input
+            type="number"
+            min="1" max="12"
+            value={hour}
+            onChange={e => setHour(e.target.value.replace(/\D/g, '').slice(0, 2))}
+            placeholder="12"
+            className="w-16 border border-gray-200 rounded-xl px-3 py-3 text-center text-base font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 transition-all duration-200"
+          />
+          <span className="text-gray-400 text-lg font-bold">:</span>
+          <input
+            type="number"
+            min="0" max="59"
+            value={minute}
+            onChange={e => setMinute(e.target.value.replace(/\D/g, '').slice(0, 2))}
+            placeholder="00"
+            className="w-16 border border-gray-200 rounded-xl px-3 py-3 text-center text-base font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 transition-all duration-200"
+          />
+          <div className="flex rounded-xl border border-gray-200 overflow-hidden">
+            {['AM', 'PM'].map(p => (
+              <button
+                key={p}
+                type="button"
+                onClick={() => setPeriod(p)}
+                className={`px-4 py-3 text-sm font-bold transition-all duration-150 ${
+                  period === p
+                    ? 'bg-brand-600 text-white'
+                    : 'bg-white text-gray-400 hover:text-gray-600'
+                }`}
+              >
+                {p}
+              </button>
             ))}
-          </select>
-          <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="6 9 12 15 18 9" />
-          </svg>
+          </div>
+          <button
+            onClick={handleSaveTime}
+            disabled={saving || !hour || minute === ''}
+            className="px-5 py-3 bg-brand-600 hover:bg-accent-500 text-white rounded-xl text-sm font-bold transition-all duration-200 disabled:opacity-40 shadow-sm"
+          >
+            {saving ? '...' : correctTime ? 'Update' : 'Set'}
+          </button>
+          {correctTime && (
+            <button
+              onClick={handleClearTime}
+              disabled={saving}
+              className="px-3 py-3 text-gray-400 hover:text-danger-500 rounded-xl text-sm transition-colors duration-150"
+            >
+              ✕
+            </button>
+          )}
         </div>
 
         {correctTime && autoWinner && (
