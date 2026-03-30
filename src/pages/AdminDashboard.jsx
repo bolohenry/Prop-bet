@@ -310,15 +310,7 @@ function TieBreakerControl({ adminCode, event, submissions }) {
     setOverriding(false);
   }
 
-  if (!submissions || submissions.length === 0) {
-    return (
-      <div className="bg-white rounded-2xl shadow-sm shadow-gray-900/[0.04] p-8 text-center">
-        <div className="text-3xl mb-3 opacity-40">📭</div>
-        <p className="text-gray-400 text-sm">No submissions yet.</p>
-      </div>
-    );
-  }
-
+  const hasSubs = submissions && submissions.length > 0;
   const correctMin = correctTime ? timeToMinutes(correctTime) : null;
 
   return (
@@ -354,7 +346,7 @@ function TieBreakerControl({ adminCode, event, submissions }) {
         )}
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm shadow-gray-900/[0.04] overflow-hidden">
+      {hasSubs ? <div className="bg-white rounded-2xl shadow-sm shadow-gray-900/[0.04] overflow-hidden">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-100">
@@ -407,7 +399,7 @@ function TieBreakerControl({ adminCode, event, submissions }) {
             })}
           </tbody>
         </table>
-      </div>
+      </div> : <p className="text-gray-400 text-sm text-center py-4">Guesses will appear here once guests submit.</p>}
 
       {correctTime && (
         <p className="text-xs text-gray-400">
