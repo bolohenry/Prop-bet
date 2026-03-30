@@ -41,7 +41,7 @@ export async function createEvent(name) {
 export async function getEventByInvite(inviteCode) {
   const { data, error } = await supabase
     .from('events')
-    .select('id, slug, name, date, status, invite_code, tie_breaker_answer, tie_winner_name')
+    .select('*')
     .eq('invite_code', inviteCode)
     .single();
   if (error) throw new Error('Event not found');
