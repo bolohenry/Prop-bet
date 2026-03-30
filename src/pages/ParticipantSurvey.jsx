@@ -153,7 +153,7 @@ export default function ParticipantSurvey() {
                     className={`flex-1 py-3.5 rounded-xl border-2 text-base font-semibold transition-all duration-200 ${
                       answers[q.id] === opt
                         ? 'bg-brand-600 text-white border-brand-600 shadow-md shadow-brand-600/20'
-                        : 'bg-white text-gray-600 border-gray-200 hover:border-brand-300 active:scale-[0.98]'
+                        : 'bg-white text-gray-600 border-gray-200 hover:border-accent-300 hover:text-accent-500 active:scale-[0.98]'
                     }`}
                   >
                     {opt}
@@ -172,7 +172,7 @@ export default function ParticipantSurvey() {
                     className={`flex-1 py-3.5 rounded-xl border-2 text-base font-semibold transition-all duration-200 ${
                       answers[q.id] === opt
                         ? 'bg-brand-600 text-white border-brand-600 shadow-md shadow-brand-600/20'
-                        : 'bg-white text-gray-600 border-gray-200 hover:border-brand-300 active:scale-[0.98]'
+                        : 'bg-white text-gray-600 border-gray-200 hover:border-accent-300 hover:text-accent-500 active:scale-[0.98]'
                     }`}
                   >
                     {opt}
@@ -191,7 +191,7 @@ export default function ParticipantSurvey() {
                     className={`py-3.5 rounded-xl border-2 text-sm font-semibold transition-all duration-200 ${
                       answers[q.id] === opt
                         ? 'bg-brand-600 text-white border-brand-600 shadow-md shadow-brand-600/20'
-                        : 'bg-white text-gray-600 border-gray-200 hover:border-brand-300 active:scale-[0.98]'
+                        : 'bg-white text-gray-600 border-gray-200 hover:border-accent-300 hover:text-accent-500 active:scale-[0.98]'
                     }`}
                   >
                     {opt}
@@ -230,7 +230,7 @@ export default function ParticipantSurvey() {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full bg-brand-600 hover:bg-brand-500 text-white py-4 rounded-2xl text-lg font-bold transition-all duration-200 disabled:opacity-50 shadow-xl shadow-brand-600/25 active:scale-[0.98]"
+            className="w-full bg-brand-600 hover:bg-accent-500 text-white py-4 rounded-2xl text-lg font-bold transition-all duration-200 disabled:opacity-50 shadow-xl shadow-brand-600/25 hover:shadow-accent-500/30 active:scale-[0.98]"
           >
             {submitting ? 'Submitting...' : 'Submit my answers'}
           </button>

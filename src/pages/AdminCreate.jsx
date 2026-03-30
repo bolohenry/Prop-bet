@@ -97,7 +97,7 @@ export default function AdminCreate() {
 
           <Link
             to={`/admin/${result.adminCode}`}
-            className="block w-full bg-brand-600 hover:bg-brand-500 text-white py-4 rounded-xl text-base font-bold transition-all duration-200 shadow-lg shadow-brand-900/40 text-center"
+            className="block w-full bg-brand-600 hover:bg-accent-500 text-white py-4 rounded-xl text-base font-bold transition-all duration-200 shadow-lg shadow-brand-900/40 hover:shadow-accent-500/30 text-center"
           >
             Open admin dashboard →
           </Link>
@@ -137,7 +137,7 @@ export default function AdminCreate() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-brand-600 hover:bg-brand-500 text-white py-4 rounded-xl text-base font-bold transition-all duration-200 disabled:opacity-50 shadow-lg shadow-brand-900/40"
+            className="w-full bg-brand-600 hover:bg-accent-500 text-white py-4 rounded-xl text-base font-bold transition-all duration-200 disabled:opacity-50 shadow-lg shadow-brand-900/40 hover:shadow-accent-500/30"
           >
             {loading ? 'Creating...' : 'Create event'}
           </button>

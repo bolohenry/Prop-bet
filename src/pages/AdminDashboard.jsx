@@ -274,7 +274,7 @@ function ScoringCard({ question, outcome, adminCode, submissions, onUndo }) {
             className={`px-5 py-2.5 rounded-xl text-sm font-bold border-2 transition-all duration-200 ${
               isResolved && currentAnswer === opt
                 ? 'bg-success-500 text-white border-success-500 shadow-md shadow-success-500/20'
-                : 'bg-white text-gray-500 border-gray-200 hover:border-brand-300 active:scale-[0.98]'
+                : 'bg-white text-gray-500 border-gray-200 hover:border-accent-300 hover:text-accent-500 active:scale-[0.98]'
             }`}
           >
             {opt}

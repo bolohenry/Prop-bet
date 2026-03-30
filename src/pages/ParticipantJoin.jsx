@@ -98,7 +98,7 @@ export default function ParticipantJoin() {
               <button
                 type="submit"
                 disabled={checking}
-                className="w-full bg-brand-600 hover:bg-brand-500 text-white py-4 rounded-xl text-base font-bold transition-all duration-200 disabled:opacity-50 shadow-lg shadow-brand-900/40"
+                className="w-full bg-brand-600 hover:bg-accent-500 text-white py-4 rounded-xl text-base font-bold transition-all duration-200 disabled:opacity-50 shadow-lg shadow-brand-900/40 hover:shadow-accent-500/30"
               >
                 {checking ? 'Checking...' : 'Continue'}
               </button>
