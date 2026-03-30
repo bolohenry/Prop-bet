@@ -5,10 +5,12 @@ import PageTitle from '../components/PageTitle';
 
 export default function AdminCreate() {
   const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState({});
+  const [emailStatus, setEmailStatus] = useState(null);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -21,10 +23,37 @@ export default function AdminCreate() {
     try {
       const data = await createEvent(name.trim());
       setResult(data);
+
+      if (email.trim()) {
+        const origin = window.location.origin;
+        sendConfirmationEmail({
+          email: email.trim(),
+          weddingName: name.trim(),
+          inviteLink: `${origin}/i/${data.inviteCode}`,
+          adminLink: `${origin}/admin/${data.adminCode}`,
+        });
+      }
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function sendConfirmationEmail(payload) {
+    try {
+      const res = await fetch('/api/send-confirmation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) {
+        setEmailStatus('sent');
+      } else {
+        setEmailStatus('failed');
+      }
+    } catch {
+      setEmailStatus('failed');
     }
   }
 
@@ -51,6 +80,12 @@ export default function AdminCreate() {
             </div>
             <h1 className="text-3xl sm:text-4xl font-extrabold text-white mb-3 tracking-tight">Event created</h1>
             <p className="text-brand-300 text-base">Save both links below — you'll need them to run your event.</p>
+            {emailStatus === 'sent' && (
+              <p className="text-success-500 text-sm mt-2">Confirmation sent to {email}</p>
+            )}
+            {emailStatus === 'failed' && (
+              <p className="text-warn-500 text-sm mt-2">Couldn't send email — save your links manually.</p>
+            )}
           </div>
 
           <div className="space-y-4 mb-8">
@@ -125,6 +160,20 @@ export default function AdminCreate() {
               className="w-full bg-white/[0.06] border border-white/[0.1] rounded-xl px-4 py-3.5 text-base text-white placeholder-brand-400/60 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500/50 transition-all duration-200"
               autoFocus
             />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-brand-200 mb-2">
+              Your email
+              <span className="text-brand-400/60 font-normal ml-1">(optional)</span>
+            </label>
+            <input
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              className="w-full bg-white/[0.06] border border-white/[0.1] rounded-xl px-4 py-3.5 text-base text-white placeholder-brand-400/60 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500/50 transition-all duration-200"
+            />
+            <p className="text-brand-400/50 text-xs mt-1.5">We'll send you the event links so you don't lose them.</p>
           </div>
           {error && (
             <div className="bg-danger-500/15 border border-danger-500/20 rounded-xl p-3">
