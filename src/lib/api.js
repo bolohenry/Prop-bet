@@ -16,14 +16,14 @@ function slugify(text) {
 
 // --- Events ---
 
-export async function createEvent(name, date) {
+export async function createEvent(name) {
   const slug = slugify(name) + '-' + nanoid(6);
   const adminCode = nanoid(12);
   const inviteCode = nanoid(8);
 
   const { data: event, error } = await supabase
     .from('events')
-    .insert({ slug, name, date, admin_code: adminCode, invite_code: inviteCode })
+    .insert({ slug, name, admin_code: adminCode, invite_code: inviteCode })
     .select()
     .single();
   if (error) throw new Error(error.message);
@@ -188,13 +188,13 @@ export async function setTieWinnerOverride(adminCode, winnerName) {
 
 export function downloadCsv(event, submissions) {
   const headers = [
-    'event_name', 'event_date', 'display_name', 'submitted_at',
+    'event_name', 'display_name', 'submitted_at',
     'q2','q3','q4','q5','q6','q7','q8','q9','q10','q11','q12','q13','q14','q15',
     'total_points', 'winner'
   ];
 
   const rows = submissions.map(s => [
-    event.name, event.date, s.display_name, s.submitted_at,
+    event.name, s.display_name, s.submitted_at,
     s.q2||'', s.q3||'', s.q4||'', s.q5||'', s.q6||'', s.q7||'',
     s.q8||'', s.q9||'', s.q10||'', s.q11||'', s.q12||'', s.q13||'', s.q14||'', s.q15||'',
     s.total_points,

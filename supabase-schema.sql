@@ -4,6 +4,7 @@
 -- If migrating from an older schema, run these first:
 --   ALTER TABLE submissions DROP COLUMN IF EXISTS q1;
 --   ALTER TABLE events ADD COLUMN IF NOT EXISTS tie_breaker_answer text;
+--   ALTER TABLE events ALTER COLUMN date DROP NOT NULL;
 
 -- 1. Tables
 
@@ -11,7 +12,7 @@ create table events (
   id uuid primary key default gen_random_uuid(),
   slug text unique not null,
   name text not null,
-  date text not null,
+  date text,
   admin_code text unique not null,
   invite_code text unique not null,
   status text not null default 'open',

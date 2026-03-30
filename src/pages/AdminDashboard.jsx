@@ -45,7 +45,6 @@ export default function AdminDashboard() {
   if (!event) return null;
 
   const resolvedCount = outcomes ? outcomes.filter(o => o.resolved).length : 0;
-  const formattedDate = new Date(event.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
   return (
     <div className="min-h-screen bg-surface pb-12">
@@ -55,7 +54,6 @@ export default function AdminDashboard() {
         <div className="max-w-4xl mx-auto px-4 pb-8">
           <p className="text-brand-400 text-xs font-semibold uppercase tracking-widest mb-2">Admin dashboard</p>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white mb-1 tracking-tight">{event.name}</h1>
-          <p className="text-brand-300 text-sm">{formattedDate}</p>
         </div>
       </div>
 

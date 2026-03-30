@@ -57,8 +57,6 @@ export default function ParticipantDashboard() {
 
   const resolvedCount = outcomes ? outcomes.filter(o => o.resolved).length : 0;
 
-  const formattedDate = new Date(event.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-
   return (
     <div className="min-h-screen bg-surface pb-12">
       <PageTitle title={`${event.name} — dashboard`} />
@@ -66,7 +64,6 @@ export default function ParticipantDashboard() {
         <NavHeader variant="dark" />
         <div className="max-w-3xl mx-auto mt-2">
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white mb-1 tracking-tight">{event.name}</h1>
-          <p className="text-brand-300 text-sm">{formattedDate}</p>
         </div>
       </div>
 

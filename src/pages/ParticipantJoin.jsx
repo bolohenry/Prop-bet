@@ -57,8 +57,6 @@ export default function ParticipantJoin() {
   if (loading) return <LoadingPage dark />;
   if (!event) return <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-brand-950 via-brand-900 to-brand-800"><p className="text-danger-400">{error || 'Event not found.'}</p></div>;
 
-  const formattedDate = new Date(event.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-brand-950 via-brand-900 to-brand-800 relative overflow-hidden">
       <PageTitle title={event.name} />
@@ -67,7 +65,6 @@ export default function ParticipantJoin() {
       <div className="max-w-lg mx-auto px-4 sm:px-8 pt-8 sm:pt-16 pb-12 relative z-10">
         <div className="text-center mb-10">
           <h1 className="text-3xl sm:text-4xl font-extrabold text-white mb-2 tracking-tight">{event.name}</h1>
-          <p className="text-brand-300">{formattedDate}</p>
         </div>
 
         {event.status !== 'open' ? (

@@ -107,8 +107,6 @@ export default function ParticipantSurvey() {
     );
   }
 
-  const formattedDate = new Date(event.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-
   return (
     <div className="min-h-screen bg-surface pb-8">
       <PageTitle title={`${event.name} — survey`} />
@@ -123,7 +121,6 @@ export default function ParticipantSurvey() {
 
       <div className="bg-gradient-to-r from-brand-800 via-brand-700 to-brand-600 px-4 py-8 sm:py-10 text-center">
         <h1 className="text-2xl sm:text-3xl font-extrabold text-white mb-1 tracking-tight">{event.name}</h1>
-        <p className="text-brand-300 text-sm">{formattedDate}</p>
         <p className="text-brand-400/70 text-xs mt-2">Playing as <span className="text-brand-200 font-semibold">{displayName}</span></p>
       </div>
 

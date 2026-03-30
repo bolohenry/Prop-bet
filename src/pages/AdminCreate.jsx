@@ -6,7 +6,6 @@ import PageTitle from '../components/PageTitle';
 
 export default function AdminCreate() {
   const [name, setName] = useState('');
-  const [date, setDate] = useState('');
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -15,13 +14,13 @@ export default function AdminCreate() {
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
-    if (!name.trim() || !date) {
-      setError('Both fields are required.');
+    if (!name.trim()) {
+      setError('Wedding name is required.');
       return;
     }
     setLoading(true);
     try {
-      const data = await createEvent(name.trim(), date);
+      const data = await createEvent(name.trim());
       setResult(data);
     } catch (err) {
       setError(err.message);
@@ -127,15 +126,7 @@ export default function AdminCreate() {
               onChange={e => setName(e.target.value)}
               placeholder="e.g. Paul & Marie's wedding"
               className="w-full bg-white/[0.06] border border-white/[0.1] rounded-xl px-4 py-3.5 text-base text-white placeholder-brand-400/60 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500/50 transition-all duration-200"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-semibold text-brand-200 mb-2">Wedding date</label>
-            <input
-              type="date"
-              value={date}
-              onChange={e => setDate(e.target.value)}
-              className="w-full bg-white/[0.06] border border-white/[0.1] rounded-xl px-4 py-3.5 text-base text-white focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500/50 transition-all duration-200 [color-scheme:dark]"
+              autoFocus
             />
           </div>
           {error && (
