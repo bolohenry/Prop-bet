@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { getEventByInvite, submitAnswers } from '../lib/api';
 import { QUESTIONS, SURVEY_QUESTIONS } from '../../shared/questions.js';
@@ -107,27 +107,59 @@ export default function ParticipantSurvey() {
     );
   }
 
+  const answeredCount = useMemo(() => {
+    return SURVEY_QUESTIONS.filter(q => answers[q.id] && answers[q.id].trim()).length;
+  }, [answers]);
+
+  const [showScrollHint, setShowScrollHint] = useState(true);
+
+  useEffect(() => {
+    function handleScroll() {
+      if (window.scrollY > 80) setShowScrollHint(false);
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
-    <div className="min-h-screen bg-surface pb-8">
+    <div className="min-h-screen bg-surface pb-8 relative">
       <PageTitle title={`${event.name} — survey`} />
 
-      {/* Progress bar */}
-      <div className="fixed top-0 left-0 right-0 z-50 h-1 bg-gray-200">
-        <div
-          className="h-full bg-brand-500 transition-all duration-300 ease-out"
-          style={{ width: `${progress}%` }}
-        />
+      {/* Progress bar + counter */}
+      <div className="sticky top-0 z-50">
+        <div className="h-1 bg-gray-200">
+          <div
+            className="h-full bg-brand-500 transition-all duration-300 ease-out"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+        <div className="bg-surface/90 backdrop-blur-sm border-b border-gray-100 px-4 py-1.5 text-center">
+          <p className="text-xs text-gray-400 font-medium">
+            <span className="text-brand-600 font-bold">{answeredCount}</span> of {SURVEY_QUESTIONS.length} answered
+          </p>
+        </div>
       </div>
 
-      <div className="bg-gradient-to-r from-brand-800 via-brand-700 to-brand-600 px-4 py-8 sm:py-10 text-center">
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-white mb-0.5 tracking-tight">{event.name}</h1>
-        <p className="text-brand-400 text-sm font-medium">wedding prop bets</p>
-        <p className="text-brand-400/70 text-xs mt-2">Playing as <span className="text-brand-200 font-semibold">{displayName}</span></p>
+      <div className="bg-gradient-to-r from-brand-800 via-brand-700 to-brand-600 px-4 py-5 sm:py-6 text-center">
+        <h1 className="text-xl sm:text-2xl font-extrabold text-white mb-0.5 tracking-tight">{event.name}</h1>
+        <p className="text-brand-400/70 text-xs">Playing as <span className="text-brand-200 font-semibold">{displayName}</span></p>
       </div>
 
-      <form onSubmit={handleSubmit} className="max-w-lg mx-auto px-4 -mt-5 space-y-4">
+      <form onSubmit={handleSubmit} className="max-w-lg mx-auto px-4 -mt-3 space-y-3">
+
+      {/* Scroll hint */}
+      {showScrollHint && (
+        <div className="fixed bottom-6 left-0 right-0 z-40 flex justify-center pointer-events-none animate-bounce">
+          <div className="bg-brand-600/90 backdrop-blur-sm text-white text-xs font-semibold px-4 py-2 rounded-full shadow-lg flex items-center gap-1.5">
+            Scroll for more questions
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </div>
+        </div>
+      )}
         {SURVEY_QUESTIONS.map(q => (
-          <div key={q.id} id={q.id} className={`bg-white rounded-2xl p-5 sm:p-6 shadow-sm border-2 transition-all duration-200 ${errors[q.id] ? 'border-danger-400 shadow-danger-100' : 'border-transparent shadow-gray-900/[0.04]'}`}>
+          <div key={q.id} id={q.id} className={`bg-white rounded-2xl p-4 sm:p-5 shadow-sm border-2 transition-all duration-200 ${errors[q.id] ? 'border-danger-400 shadow-danger-100' : 'border-transparent shadow-gray-900/[0.04]'}`}>
             <label className="block text-sm font-semibold text-gray-800 mb-3">
               <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-brand-100 text-brand-600 text-xs font-bold mr-2">{q.number}</span>
               {q.text}
