@@ -116,12 +116,12 @@ export default function AdminCreate() {
 
         <form onSubmit={handleSubmit} className="bg-white/[0.08] backdrop-blur-md border border-white/[0.08] rounded-2xl p-6 sm:p-8 space-y-6">
           <div>
-            <label className="block text-sm font-semibold text-brand-200 mb-2">Wedding name</label>
+            <label className="block text-sm font-semibold text-brand-200 mb-2">Whose wedding?</label>
             <input
               type="text"
               value={name}
               onChange={e => setName(e.target.value)}
-              placeholder="e.g. Paul & Marie's wedding"
+              placeholder="e.g. Paul & Marie"
               className="w-full bg-white/[0.06] border border-white/[0.1] rounded-xl px-4 py-3.5 text-base text-white placeholder-brand-400/60 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500/50 transition-all duration-200"
               autoFocus
             />

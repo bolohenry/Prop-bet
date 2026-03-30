@@ -99,7 +99,8 @@ export default function ParticipantSurvey() {
       <div className="min-h-screen bg-gradient-to-br from-brand-950 via-brand-900 to-brand-800 flex items-center justify-center p-8">
         <div className="text-center">
           <span className="text-3xl block mb-3">🔒</span>
-          <h1 className="text-2xl font-bold text-white mb-2">{event.name}</h1>
+          <h1 className="text-2xl font-bold text-white mb-0.5">{event.name}</h1>
+          <p className="text-brand-400 text-sm font-medium mb-2">wedding prop bets</p>
           <p className="text-warn-500 font-semibold">Submissions are currently closed for this event.</p>
         </div>
       </div>
@@ -119,7 +120,8 @@ export default function ParticipantSurvey() {
       </div>
 
       <div className="bg-gradient-to-r from-brand-800 via-brand-700 to-brand-600 px-4 py-8 sm:py-10 text-center">
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-white mb-1 tracking-tight">{event.name}</h1>
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-white mb-0.5 tracking-tight">{event.name}</h1>
+        <p className="text-brand-400 text-sm font-medium">wedding prop bets</p>
         <p className="text-brand-400/70 text-xs mt-2">Playing as <span className="text-brand-200 font-semibold">{displayName}</span></p>
       </div>
 

@@ -61,7 +61,8 @@ export default function ParticipantDashboard() {
       <PageTitle title={`${event.name} — dashboard`} />
       <div className="bg-gradient-to-r from-brand-800 via-brand-700 to-brand-600 px-4 py-8 sm:py-10">
         <div className="max-w-3xl mx-auto">
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white mb-1 tracking-tight">{event.name}</h1>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-white mb-0.5 tracking-tight">{event.name}</h1>
+          <p className="text-brand-400 text-sm font-medium">wedding prop bets</p>
         </div>
       </div>
 

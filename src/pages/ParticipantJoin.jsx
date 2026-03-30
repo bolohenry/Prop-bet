@@ -62,7 +62,8 @@ export default function ParticipantJoin() {
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--color-accent-500)_0%,_transparent_50%)] opacity-10" />
       <div className="max-w-lg mx-auto px-4 sm:px-8 pt-8 sm:pt-16 pb-12 relative z-10">
         <div className="text-center mb-10">
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-white mb-2 tracking-tight">{event.name}</h1>
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-white mb-1 tracking-tight">{event.name}</h1>
+          <p className="text-brand-400 text-sm font-medium">wedding prop bets</p>
         </div>
 
         {event.status !== 'open' ? (
