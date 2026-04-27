@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { getEventByInvite, getSubmission } from '../lib/api';
 import { useRealtimeDashboard } from '../lib/useRealtimeDashboard';
 import { SURVEY_QUESTIONS } from '../../shared/questions.js';
@@ -98,6 +98,8 @@ export default function ParticipantDashboard() {
                     <span className="text-brand-200/70 truncate flex-1">Q{q.number}. {q.text}</span>
                     <div className="flex items-center gap-1.5 shrink-0">
                       <span className="text-white font-medium">{answer}</span>
+                      {submission.wager_3x === q.id && <span className="text-brand-300 text-xs font-bold">3×</span>}
+                      {submission.wager_2x === q.id && <span className="text-accent-300 text-xs font-bold">2×</span>}
                       {q.scored && isResolved && (
                         <span className={`text-xs ${isCorrect ? 'text-green-300' : 'text-red-300'}`}>
                           {isCorrect ? '✓' : '✗'}
@@ -130,6 +132,17 @@ export default function ParticipantDashboard() {
             <h2 className="text-base font-bold text-gray-800 mb-3 tracking-tight">Answer matrix</h2>
             <AnswerMatrix submissions={submissions} outcomes={outcomes} />
           </section>
+        )}
+
+        {event.status === 'finalized' && (
+          <div className="text-center">
+            <Link
+              to={`/i/${inviteCode}/recap`}
+              className="inline-block w-full bg-brand-600 hover:bg-accent-500 text-white py-4 rounded-2xl text-base font-bold transition-all duration-200 shadow-lg shadow-brand-600/20 hover:shadow-accent-500/30"
+            >
+              🎉 View Event Recap
+            </Link>
+          </div>
         )}
 
         <div className="text-center pt-4 pb-2">

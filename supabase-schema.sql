@@ -25,10 +25,13 @@ create table submissions (
   id uuid primary key default gen_random_uuid(),
   event_id uuid not null references events(id) on delete cascade,
   display_name text not null,
+  avatar text,
   submitted_at timestamptz not null default now(),
   q2 text, q3 text, q4 text, q5 text,
   q6 text, q7 text, q8 text, q9 text, q10 text,
   q11 text, q12 text, q13 text, q14 text, q15 text,
+  wager_3x text,
+  wager_2x text,
   total_points integer not null default 0,
   unique(event_id, display_name)
 );
@@ -74,27 +77,32 @@ declare
   sub record;
   outcome record;
   pts integer;
+  multiplier integer;
   qid text;
   scored_ids text[] := array['q3','q4','q5','q6','q7','q8','q9','q10','q11','q12','q13','q14'];
 begin
-  for sub in select id, q3,q4,q5,q6,q7,q8,q9,q10,q11,q12,q13,q14 from submissions where event_id = p_event_id
+  for sub in select id, q3,q4,q5,q6,q7,q8,q9,q10,q11,q12,q13,q14, wager_3x, wager_2x from submissions where event_id = p_event_id
   loop
     pts := 0;
     for outcome in select question_id, answer from outcomes where event_id = p_event_id and resolved = true
     loop
       qid := outcome.question_id;
-      if qid = 'q3'  and sub.q3  = outcome.answer then pts := pts + 1; end if;
-      if qid = 'q4'  and sub.q4  = outcome.answer then pts := pts + 1; end if;
-      if qid = 'q5'  and sub.q5  = outcome.answer then pts := pts + 1; end if;
-      if qid = 'q6'  and sub.q6  = outcome.answer then pts := pts + 1; end if;
-      if qid = 'q7'  and sub.q7  = outcome.answer then pts := pts + 1; end if;
-      if qid = 'q8'  and sub.q8  = outcome.answer then pts := pts + 1; end if;
-      if qid = 'q9'  and sub.q9  = outcome.answer then pts := pts + 1; end if;
-      if qid = 'q10' and sub.q10 = outcome.answer then pts := pts + 1; end if;
-      if qid = 'q11' and sub.q11 = outcome.answer then pts := pts + 1; end if;
-      if qid = 'q12' and sub.q12 = outcome.answer then pts := pts + 1; end if;
-      if qid = 'q13' and sub.q13 = outcome.answer then pts := pts + 1; end if;
-      if qid = 'q14' and sub.q14 = outcome.answer then pts := pts + 1; end if;
+      multiplier := 1;
+      if sub.wager_3x = qid then multiplier := 3; end if;
+      if sub.wager_2x = qid then multiplier := 2; end if;
+
+      if qid = 'q3'  and sub.q3  = outcome.answer then pts := pts + multiplier; end if;
+      if qid = 'q4'  and sub.q4  = outcome.answer then pts := pts + multiplier; end if;
+      if qid = 'q5'  and sub.q5  = outcome.answer then pts := pts + multiplier; end if;
+      if qid = 'q6'  and sub.q6  = outcome.answer then pts := pts + multiplier; end if;
+      if qid = 'q7'  and sub.q7  = outcome.answer then pts := pts + multiplier; end if;
+      if qid = 'q8'  and sub.q8  = outcome.answer then pts := pts + multiplier; end if;
+      if qid = 'q9'  and sub.q9  = outcome.answer then pts := pts + multiplier; end if;
+      if qid = 'q10' and sub.q10 = outcome.answer then pts := pts + multiplier; end if;
+      if qid = 'q11' and sub.q11 = outcome.answer then pts := pts + multiplier; end if;
+      if qid = 'q12' and sub.q12 = outcome.answer then pts := pts + multiplier; end if;
+      if qid = 'q13' and sub.q13 = outcome.answer then pts := pts + multiplier; end if;
+      if qid = 'q14' and sub.q14 = outcome.answer then pts := pts + multiplier; end if;
     end loop;
     update submissions set total_points = pts where id = sub.id;
   end loop;

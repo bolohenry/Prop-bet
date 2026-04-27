@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getEventByInvite, checkName, getSubmission } from '../lib/api';
 import PageTitle from '../components/PageTitle';
+import AvatarPicker from '../components/AvatarPicker';
 import { LoadingPage } from '../components/Skeleton';
 
 export default function ParticipantJoin() {
@@ -9,6 +10,8 @@ export default function ParticipantJoin() {
   const navigate = useNavigate();
   const [event, setEvent] = useState(null);
   const [displayName, setDisplayName] = useState('');
+  const [avatar, setAvatar] = useState('');
+  const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [checking, setChecking] = useState(false);
@@ -31,6 +34,7 @@ export default function ParticipantJoin() {
       const existing = await getSubmission(event.id, name);
       if (existing) {
         sessionStorage.setItem(`wpb_name_${event.id}`, name);
+        if (avatar) sessionStorage.setItem(`wpb_avatar_${event.id}`, avatar);
         navigate(`/i/${inviteCode}/dashboard`);
         return;
       }
@@ -50,7 +54,8 @@ export default function ParticipantJoin() {
     }
 
     sessionStorage.setItem(`wpb_name_${event.id}`, name);
-    navigate(`/i/${inviteCode}/survey`, { state: { displayName: name, event } });
+    if (avatar) sessionStorage.setItem(`wpb_avatar_${event.id}`, avatar);
+    navigate(`/i/${inviteCode}/survey`, { state: { displayName: name, avatar, event } });
   }
 
   if (loading) return <LoadingPage dark />;
@@ -85,6 +90,21 @@ export default function ParticipantJoin() {
                   className="w-full bg-white/[0.06] border border-white/[0.1] rounded-xl px-4 py-3.5 text-base text-white placeholder-brand-400/60 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500/50 transition-all duration-200"
                   autoFocus
                 />
+              </div>
+              <AvatarPicker value={avatar} onChange={setAvatar} />
+              <div>
+                <label className="block text-sm font-semibold text-brand-200 mb-2">
+                  Your email
+                  <span className="text-brand-400/60 font-normal ml-1">(optional)</span>
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  className="w-full bg-white/[0.06] border border-white/[0.1] rounded-xl px-4 py-3.5 text-base text-white placeholder-brand-400/60 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500/50 transition-all duration-200"
+                />
+                <p className="text-brand-400/50 text-xs mt-1.5">We'll send you a link to check your results later.</p>
               </div>
               {error && (
                 <div className="bg-danger-500/15 border border-danger-500/20 rounded-xl p-3">

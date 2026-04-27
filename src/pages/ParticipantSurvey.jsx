@@ -1,8 +1,10 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { toast } from 'sonner';
 import { getEventByInvite, submitAnswers } from '../lib/api';
 import { QUESTIONS, SURVEY_QUESTIONS } from '../../shared/questions.js';
 import PageTitle from '../components/PageTitle';
+import WagerPicker from '../components/WagerPicker';
 import { LoadingPage } from '../components/Skeleton';
 
 const TIME_OPTIONS = (() => {
@@ -33,15 +35,29 @@ export default function ParticipantSurvey() {
   const location = useLocation();
   const [event, setEvent] = useState(location.state?.event || null);
   const [displayName] = useState(location.state?.displayName || sessionStorage.getItem(`wpb_name_${event?.id}`) || '');
+  const [avatar] = useState(location.state?.avatar || sessionStorage.getItem(`wpb_avatar_${event?.id}`) || '');
   const [answers, setAnswers] = useState(() => {
     const initial = {};
     for (const q of QUESTIONS) initial[q.id] = '';
+    if (location.state?.displayName) initial.q2 = location.state.displayName;
+
+    const eventId = location.state?.event?.id;
+    if (eventId) {
+      try {
+        const draft = JSON.parse(sessionStorage.getItem(`wpb_draft_${eventId}`) || '{}');
+        for (const key of Object.keys(draft)) {
+          if (draft[key]) initial[key] = draft[key];
+        }
+      } catch {}
+    }
     if (location.state?.displayName) initial.q2 = location.state.displayName;
     return initial;
   });
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [step, setStep] = useState(1);
+  const [wagers, setWagers] = useState({});
 
   useEffect(() => {
     if (!event) {
@@ -51,6 +67,12 @@ export default function ParticipantSurvey() {
       }).catch(() => navigate(`/i/${inviteCode}`));
     }
   }, [inviteCode, event, displayName, navigate]);
+
+  useEffect(() => {
+    if (event?.id) {
+      sessionStorage.setItem(`wpb_draft_${event.id}`, JSON.stringify(answers));
+    }
+  }, [answers, event?.id]);
 
   const progress = useMemo(() => {
     const answered = SURVEY_QUESTIONS.filter(q => answers[q.id] && answers[q.id].trim()).length;
@@ -62,7 +84,7 @@ export default function ParticipantSurvey() {
     setErrors(prev => ({ ...prev, [qId]: '' }));
   }
 
-  async function handleSubmit(e) {
+  function handleNextStep(e) {
     e.preventDefault();
     setSubmitError('');
 
@@ -81,10 +103,32 @@ export default function ParticipantSurvey() {
       return;
     }
 
+    setStep(2);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function handleWagerChange(qId, value) {
+    setWagers(prev => {
+      const next = { ...prev };
+      if (value === 1) {
+        delete next[qId];
+      } else {
+        next[qId] = value;
+      }
+      return next;
+    });
+  }
+
+  async function handleFinalSubmit() {
+    setSubmitError('');
     setSubmitting(true);
     try {
-      await submitAnswers(event.id, answers);
+      const tripleQ = Object.entries(wagers).find(([, v]) => v === 3)?.[0] || null;
+      const doubleQ = Object.entries(wagers).find(([, v]) => v === 2)?.[0] || null;
+      await submitAnswers(event.id, answers, tripleQ, doubleQ, avatar);
       sessionStorage.setItem(`wpb_name_${event.id}`, answers.q2.trim());
+      sessionStorage.removeItem(`wpb_draft_${event.id}`);
+      toast.success('Bets submitted! 🎲');
       navigate(`/i/${inviteCode}/dashboard`);
     } catch (err) {
       setSubmitError(err.message);
@@ -121,11 +165,33 @@ export default function ParticipantSurvey() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  if (step === 2) {
+    return (
+      <>
+        <PageTitle title={`${event.name} — wagers`} />
+        {submitError && (
+          <div className="max-w-lg mx-auto px-4 mt-4">
+            <div className="bg-danger-50 border border-danger-400/30 rounded-2xl p-4">
+              <p className="text-danger-600 text-sm font-medium">{submitError}</p>
+            </div>
+          </div>
+        )}
+        <WagerPicker
+          answers={answers}
+          wagers={wagers}
+          onWagerChange={handleWagerChange}
+          onBack={() => { setStep(1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+          onSubmit={handleFinalSubmit}
+          submitting={submitting}
+        />
+      </>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-surface pb-8 relative">
       <PageTitle title={`${event.name} — survey`} />
 
-      {/* Progress bar + counter */}
       <div className="sticky top-0 z-50">
         <div className="h-1 bg-gray-200">
           <div
@@ -142,12 +208,11 @@ export default function ParticipantSurvey() {
 
       <div className="bg-gradient-to-r from-brand-800 via-brand-700 to-brand-600 px-4 py-5 sm:py-6 text-center">
         <h1 className="text-xl sm:text-2xl font-extrabold text-white mb-0.5 tracking-tight">{event.name}</h1>
-        <p className="text-brand-400/70 text-xs">Playing as <span className="text-brand-200 font-semibold">{displayName}</span></p>
+        <p className="text-brand-400/70 text-xs">Playing as {avatar && <span className="mr-1">{avatar}</span>}<span className="text-brand-200 font-semibold">{displayName}</span></p>
       </div>
 
-      <form onSubmit={handleSubmit} className="max-w-lg mx-auto px-4 -mt-3 space-y-3">
+      <form onSubmit={handleNextStep} className="max-w-lg mx-auto px-4 -mt-3 space-y-3">
 
-      {/* Scroll hint */}
       {showScrollHint && (
         <div className="fixed bottom-6 left-0 right-0 z-40 flex justify-center pointer-events-none animate-bounce">
           <div className="bg-brand-600/90 backdrop-blur-sm text-white text-xs font-semibold px-4 py-2 rounded-full shadow-lg flex items-center gap-1.5">
@@ -158,10 +223,24 @@ export default function ParticipantSurvey() {
           </div>
         </div>
       )}
-        {SURVEY_QUESTIONS.map(q => (
-          <div key={q.id} id={q.id} className={`bg-white rounded-2xl p-4 sm:p-5 shadow-sm border-2 transition-all duration-200 ${errors[q.id] ? 'border-danger-400 shadow-danger-100' : 'border-transparent shadow-gray-900/[0.04]'}`}>
+        {SURVEY_QUESTIONS.map(q => {
+          const isTiebreaker = q.id === 'q15';
+          const cardBase = isTiebreaker
+            ? `bg-accent-50 rounded-2xl p-4 sm:p-5 pt-7 shadow-sm border-2 transition-all duration-200 relative ${errors[q.id] ? 'border-danger-400' : 'border-accent-200'}`
+            : `bg-white rounded-2xl p-4 sm:p-5 shadow-sm border-2 transition-all duration-200 ${errors[q.id] ? 'border-danger-400 shadow-danger-100' : 'border-transparent shadow-gray-900/[0.04]'}`;
+          const numCircle = isTiebreaker
+            ? 'inline-flex items-center justify-center w-6 h-6 rounded-full bg-accent-100 text-accent-500 text-xs font-bold mr-2'
+            : 'inline-flex items-center justify-center w-6 h-6 rounded-full bg-brand-100 text-brand-600 text-xs font-bold mr-2';
+
+          return (
+          <div key={q.id} id={q.id} className={cardBase}>
+            {isTiebreaker && (
+              <span className="absolute -top-3 left-5 bg-accent-500 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-sm">
+                Tiebreaker
+              </span>
+            )}
             <label className="block text-sm font-semibold text-gray-800 mb-3">
-              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-brand-100 text-brand-600 text-xs font-bold mr-2">{q.number}</span>
+              <span className={numCircle}>{isTiebreaker ? 'TB' : q.number}</span>
               {q.text}
               {q.hint && <span className="text-gray-400 text-xs font-normal ml-1">({q.hint})</span>}
             </label>
@@ -251,7 +330,8 @@ export default function ParticipantSurvey() {
 
             {errors[q.id] && <p className="text-danger-500 text-xs mt-2 font-medium">{errors[q.id]}</p>}
           </div>
-        ))}
+          );
+        })}
 
         {submitError && (
           <div className="bg-danger-50 border border-danger-400/30 rounded-2xl p-4">
@@ -262,10 +342,9 @@ export default function ParticipantSurvey() {
         <div className="sticky bottom-4 pt-2">
           <button
             type="submit"
-            disabled={submitting}
-            className="w-full bg-brand-600 hover:bg-accent-500 text-white py-4 rounded-2xl text-lg font-bold transition-all duration-200 disabled:opacity-50 shadow-xl shadow-brand-600/25 hover:shadow-accent-500/30 active:scale-[0.98]"
+            className="w-full bg-brand-600 hover:bg-accent-500 text-white py-4 rounded-2xl text-lg font-bold transition-all duration-200 shadow-xl shadow-brand-600/25 hover:shadow-accent-500/30 active:scale-[0.98]"
           >
-            {submitting ? 'Submitting...' : 'Submit my answers'}
+            Next: Place Your Wagers →
           </button>
         </div>
       </form>

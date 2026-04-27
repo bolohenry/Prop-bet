@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 const SHARE_DATA = {
   title: 'Wedding prop bets',
@@ -20,6 +21,7 @@ export default function ShareButton({ variant = 'dark', className = '' }) {
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);
+      toast.success('Copied to clipboard');
       setTimeout(() => setCopied(false), 2000);
     } catch {}
   }

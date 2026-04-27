@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { toast } from 'sonner';
 import { createEvent } from '../lib/api';
 import PageTitle from '../components/PageTitle';
 
@@ -23,6 +24,7 @@ export default function AdminCreate() {
     try {
       const data = await createEvent(name.trim());
       setResult(data);
+      toast.success('Event created!');
 
       if (email.trim()) {
         const origin = window.location.origin;
@@ -60,6 +62,7 @@ export default function AdminCreate() {
   function copyToClipboard(text, key) {
     navigator.clipboard.writeText(text);
     setCopied(prev => ({ ...prev, [key]: true }));
+    toast.success('Copied to clipboard');
     setTimeout(() => setCopied(prev => ({ ...prev, [key]: false })), 2000);
   }
 

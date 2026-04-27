@@ -70,7 +70,7 @@ export async function checkName(eventId, name) {
   return { taken: data && data.length > 0 };
 }
 
-export async function submitAnswers(eventId, answers) {
+export async function submitAnswers(eventId, answers, wager3x = null, wager2x = null, avatar = null) {
   const { data: event } = await supabase
     .from('events')
     .select('status')
@@ -88,11 +88,14 @@ export async function submitAnswers(eventId, answers) {
     .insert({
       event_id: eventId,
       display_name: displayName,
+      avatar: avatar || null,
       q2: answers.q2?.trim(),
       q3: answers.q3, q4: answers.q4, q5: answers.q5, q6: answers.q6,
       q7: answers.q7, q8: answers.q8, q9: answers.q9, q10: answers.q10,
       q11: answers.q11, q12: answers.q12, q13: answers.q13, q14: answers.q14,
       q15: answers.q15?.trim(),
+      wager_3x: wager3x,
+      wager_2x: wager2x,
     })
     .select()
     .single();

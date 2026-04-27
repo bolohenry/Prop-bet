@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
+import { toast } from 'sonner';
 import { getEventByAdmin, updateEventStatus, scoreQuestion, setTieBreakerAnswer, setTieWinnerOverride, downloadCsv } from '../lib/api';
 import { useRealtimeDashboard } from '../lib/useRealtimeDashboard';
 import { SCORED_QUESTIONS, TOTAL_SCORED } from '../../shared/questions.js';
@@ -7,6 +8,8 @@ import { timeToMinutes } from '../../shared/tiebreaker.js';
 import PageTitle from '../components/PageTitle';
 import Leaderboard from '../components/Leaderboard';
 import AnswerMatrix from '../components/AnswerMatrix';
+import ConfirmDialog from '../components/ConfirmDialog';
+import StickyTabNav from '../components/StickyTabNav';
 import { LoadingPage } from '../components/Skeleton';
 
 function parseTimeString(str) {
@@ -53,45 +56,68 @@ export default function AdminDashboard() {
         </div>
       </div>
 
+      <StickyTabNav />
+
       <div className="max-w-4xl mx-auto px-4 -mt-5 space-y-8">
-        {/* Quick stats */}
-        <div className="grid grid-cols-3 gap-3">
-          <div className="bg-white rounded-2xl shadow-sm shadow-gray-900/[0.04] p-4 text-center">
-            <p className="text-2xl font-extrabold text-gray-800">{submissions?.length || 0}</p>
-            <p className="text-xs text-gray-400 mt-0.5">submissions</p>
+        <div id="section-overview">
+          <div className="grid grid-cols-3 gap-3 mb-6">
+            <div className="bg-white rounded-2xl shadow-sm shadow-gray-900/[0.04] p-4 text-center">
+              <p className="text-2xl font-extrabold text-gray-800">{submissions?.length || 0}</p>
+              <p className="text-xs text-gray-400 mt-0.5">submissions</p>
+            </div>
+            <div className="bg-white rounded-2xl shadow-sm shadow-gray-900/[0.04] p-4 text-center">
+              <p className="text-2xl font-extrabold text-gray-800">{resolvedCount}<span className="text-base font-normal text-gray-300">/{TOTAL_SCORED}</span></p>
+              <p className="text-xs text-gray-400 mt-0.5">scored</p>
+            </div>
+            <div className="bg-white rounded-2xl shadow-sm shadow-gray-900/[0.04] p-4 text-center">
+              <p className="text-2xl font-extrabold text-gray-800 capitalize">{event.status}</p>
+              <p className="text-xs text-gray-400 mt-0.5">status</p>
+            </div>
           </div>
-          <div className="bg-white rounded-2xl shadow-sm shadow-gray-900/[0.04] p-4 text-center">
-            <p className="text-2xl font-extrabold text-gray-800">{resolvedCount}<span className="text-base font-normal text-gray-300">/{TOTAL_SCORED}</span></p>
-            <p className="text-xs text-gray-400 mt-0.5">scored</p>
-          </div>
-          <div className="bg-white rounded-2xl shadow-sm shadow-gray-900/[0.04] p-4 text-center">
-            <p className="text-2xl font-extrabold text-gray-800 capitalize">{event.status}</p>
-            <p className="text-xs text-gray-400 mt-0.5">status</p>
-          </div>
+          <StatusControl adminCode={adminCode} currentStatus={event.status} />
         </div>
 
-        <StatusControl adminCode={adminCode} currentStatus={event.status} />
+        <div id="section-submissions">
+          <Section title="Submissions" count={submissions?.length || 0}
+            action={<button onClick={() => downloadCsv(event, submissions || [])} className="text-sm bg-white hover:bg-gray-50 border border-gray-200 px-4 py-2 rounded-xl font-semibold transition-colors duration-150 text-gray-600 shadow-sm">Export CSV</button>}>
+            <SubmissionsTable submissions={submissions} />
+          </Section>
+        </div>
 
-        <Section title="Submissions" count={submissions?.length || 0}
-          action={<button onClick={() => downloadCsv(event, submissions || [])} className="text-sm bg-white hover:bg-gray-50 border border-gray-200 px-4 py-2 rounded-xl font-semibold transition-colors duration-150 text-gray-600 shadow-sm">Export CSV</button>}>
-          <SubmissionsTable submissions={submissions} />
-        </Section>
+        <div id="section-scoring">
+          <Section title="Live scoring">
+            <ScoringPanel adminCode={adminCode} outcomes={outcomes} submissions={submissions} />
+          </Section>
+        </div>
 
-        <Section title="Live scoring">
-          <ScoringPanel adminCode={adminCode} outcomes={outcomes} submissions={submissions} />
-        </Section>
+        <div id="section-leaderboard">
+          <Section title="Leaderboard">
+            <Leaderboard submissions={submissions} outcomes={outcomes} winnerName={event.tie_winner_name} />
+          </Section>
+        </div>
 
-        <Section title="Leaderboard">
-          <Leaderboard submissions={submissions} outcomes={outcomes} winnerName={event.tie_winner_name} />
-        </Section>
+        <div id="section-tiebreaker">
+          <Section title="Tie breaker">
+            <TieBreakerControl adminCode={adminCode} event={event} submissions={submissions} />
+          </Section>
+        </div>
 
-        <Section title="Tie breaker">
-          <TieBreakerControl adminCode={adminCode} event={event} submissions={submissions} />
-        </Section>
+        <div id="section-matrix">
+          <Section title="Answer matrix">
+            <AnswerMatrix submissions={submissions} outcomes={outcomes} />
+          </Section>
+        </div>
 
-        <Section title="Answer matrix">
-          <AnswerMatrix submissions={submissions} outcomes={outcomes} />
-        </Section>
+        {event.status === 'finalized' && (
+          <div className="text-center pb-4">
+            <a
+              href={`/i/${event.invite_code}/recap`}
+              className="inline-block bg-brand-600 hover:bg-accent-500 text-white px-8 py-4 rounded-2xl text-base font-bold transition-all duration-200 shadow-lg shadow-brand-600/20"
+            >
+              🎉 View Recap
+            </a>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -114,6 +140,7 @@ function Section({ title, count, action, children }) {
 
 function StatusControl({ adminCode, currentStatus }) {
   const [updating, setUpdating] = useState(false);
+  const [confirmTarget, setConfirmTarget] = useState(null);
   const statuses = [
     { value: 'open', label: 'Open', desc: 'Participants can submit.', color: 'success' },
     { value: 'locked', label: 'Locked', desc: 'Submissions closed.', color: 'warn' },
@@ -121,13 +148,29 @@ function StatusControl({ adminCode, currentStatus }) {
     { value: 'finalized', label: 'Finalized', desc: 'Event complete.', color: 'gray' },
   ];
 
-  async function handleChange(status) {
+  const needsConfirmation = { locked: true, finalized: true };
+  const confirmMessages = {
+    locked: { title: "Change status to 'Locked'?", desc: 'No new submissions will be accepted while the event is locked.', label: 'Lock submissions', destructive: false },
+    finalized: { title: "Change status to 'Finalized'?", desc: 'This marks the event as complete. Scores will no longer update.', label: 'Finalize event', destructive: true },
+  };
+
+  function handleClick(status) {
+    if (needsConfirmation[status]) {
+      setConfirmTarget(status);
+    } else {
+      doChange(status);
+    }
+  }
+
+  async function doChange(status) {
+    setConfirmTarget(null);
     setUpdating(true);
     try { await updateEventStatus(adminCode, status); } catch {}
     setUpdating(false);
   }
 
   const current = statuses.find(s => s.value === currentStatus) || statuses[0];
+  const cm = confirmTarget ? confirmMessages[confirmTarget] : null;
 
   return (
     <div className="bg-white rounded-2xl shadow-sm shadow-gray-900/[0.04] p-6">
@@ -143,7 +186,7 @@ function StatusControl({ adminCode, currentStatus }) {
           const inactive = 'bg-white text-gray-400 border-gray-200 hover:border-gray-300 hover:text-gray-500';
 
           return (
-            <button key={s.value} onClick={() => handleChange(s.value)} disabled={updating}
+            <button key={s.value} onClick={() => handleClick(s.value)} disabled={updating}
               className={`${base} ${isActive ? active : inactive}`}>
               {s.label}
             </button>
@@ -151,6 +194,16 @@ function StatusControl({ adminCode, currentStatus }) {
         })}
       </div>
       <p className="text-xs text-gray-400 mt-3">{current.desc}</p>
+
+      <ConfirmDialog
+        open={!!confirmTarget}
+        title={cm?.title}
+        description={cm?.desc}
+        confirmLabel={cm?.label}
+        destructive={cm?.destructive}
+        onConfirm={() => doChange(confirmTarget)}
+        onCancel={() => setConfirmTarget(null)}
+      />
     </div>
   );
 }
@@ -178,7 +231,7 @@ function SubmissionsTable({ submissions }) {
         <tbody className="divide-y divide-gray-50">
           {submissions.map(s => (
             <tr key={s.display_name} className="hover:bg-gray-50/50 transition-colors duration-150">
-              <td className="px-5 py-3.5 font-semibold text-gray-800">{s.display_name}</td>
+              <td className="px-5 py-3.5 font-semibold text-gray-800">{s.avatar && <span className="mr-1">{s.avatar}</span>}{s.display_name}</td>
               <td className="px-5 py-3.5 text-gray-400 text-xs">{new Date(s.submitted_at).toLocaleString()}</td>
               <td className="px-5 py-3.5 text-right">
                 <span className="inline-flex items-center justify-center min-w-[2rem] px-2.5 py-1 bg-brand-100 text-brand-700 font-bold rounded-lg text-xs">
@@ -240,6 +293,7 @@ function ScoringCard({ question, outcome, adminCode, submissions, onUndo }) {
         onUndo(`Q${question.number} unscored — tap again to re-score`);
       } else {
         await scoreQuestion(adminCode, question.id, answer, true);
+        toast.success(`Q${question.number} scored: ${answer}`);
       }
     } catch {}
     setSaving(false);

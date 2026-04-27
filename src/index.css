@@ -46,3 +46,26 @@ body {
   -webkit-font-smoothing: antialiased;
   background: var(--color-surface);
 }
+
+:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-brand-500);
+  border-radius: 8px;
+}
+
+button, a, input, select, textarea {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+input[type="number"] {
+  min-width: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

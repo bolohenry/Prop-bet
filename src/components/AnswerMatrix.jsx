@@ -47,6 +47,7 @@ export default function AnswerMatrix({ submissions, outcomes }) {
                 const outcome = outcomeMap[q.id];
                 const isResolved = outcome?.resolved;
                 const isCorrect = isResolved && outcome.answer === answer;
+                const wagerLabel = s.wager_3x === q.id ? '3×' : s.wager_2x === q.id ? '2×' : null;
 
                 return (
                   <td key={q.id} className={`px-2 py-3 text-center font-medium ${
@@ -57,6 +58,7 @@ export default function AnswerMatrix({ submissions, outcomes }) {
                       : 'text-gray-500'
                   }`}>
                     {answer || '—'}
+                    {wagerLabel && <sup className="text-[9px] ml-0.5 text-accent-500 font-bold">{wagerLabel}</sup>}
                   </td>
                 );
               })}
