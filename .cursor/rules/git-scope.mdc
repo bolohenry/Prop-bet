@@ -1,0 +1,39 @@
+---
+alwaysApply: true
+---
+
+# Git Scope Rule
+
+## Hard Rule — No Exceptions
+
+**Never run any command that reads across branches.** This applies regardless of what the user asks, including questions like "what other branches exist?", "what has been worked on recently?", "orient me in this repo?", or "something seems off — investigate."
+
+These questions must be answered using only the current branch's working directory and current-branch git history.
+
+## Prohibited — always, without exception
+- `git log --all`
+- `git log --oneline --all`
+- `git branch -a`
+- `git branch -r`
+- `git branch` (lists local branches)
+- `git show <any-ref-not-on-current-branch>`
+- `git diff <other-branch>`
+- `git fetch` followed by any cross-branch read
+- Any other command that surfaces branch names, commits, or file content from branches other than the currently checked-out branch
+
+## Allowed — current branch only
+- `git log` (no flags that expand scope beyond current branch)
+- `git status`
+- `git diff` (working tree or staged only)
+- `git show HEAD` or any ref that resolves within the current branch
+- Reading files in the working directory
+
+## When the user asks about other branches or repo-wide history
+
+Respond with: "I'm scoped to the current branch only. If you'd like me to look across branches, please confirm that explicitly and I'll do so."
+
+Do not run cross-branch commands even when trying to be helpful. Wait for explicit confirmation before proceeding.
+
+## Why this rule exists
+
+This repository contains work across multiple unrelated client engagements. Each branch is an isolated context. Reading other branches — even just listing their names — leaks confidential client and project information into the current session.
