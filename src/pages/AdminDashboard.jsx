@@ -1,15 +1,21 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { toast } from 'sonner';
-import { getEventByAdmin, updateEventStatus, scoreQuestion, setTieBreakerAnswer, setTieWinnerOverride, downloadCsv } from '../lib/api';
+import {
+  getEventByAdmin, updateEventStatus, scoreQuestion,
+  setTieBreakerAnswer, setTieWinnerOverride, downloadCsv,
+  getQuestions, deriveScoredQuestions, deriveTiebreakerQuestion,
+  getGuests, getTeams,
+} from '../lib/api';
 import { useRealtimeDashboard } from '../lib/useRealtimeDashboard';
-import { SCORED_QUESTIONS, TOTAL_SCORED } from '../../shared/questions.js';
 import { timeToMinutes } from '../../shared/tiebreaker.js';
 import PageTitle from '../components/PageTitle';
 import Leaderboard from '../components/Leaderboard';
 import AnswerMatrix from '../components/AnswerMatrix';
 import ConfirmDialog from '../components/ConfirmDialog';
 import StickyTabNav from '../components/StickyTabNav';
+import GuestListManager from '../components/GuestListManager';
+import TeamLeaderboard from '../components/TeamLeaderboard';
 import { LoadingPage } from '../components/Skeleton';
 
 function parseTimeString(str) {
@@ -27,14 +33,32 @@ function formatTimeString(hour, minute, period) {
 export default function AdminDashboard() {
   const { adminCode } = useParams();
   const [eventMeta, setEventMeta] = useState(null);
+  const [questions, setQuestions] = useState([]);
+  const [guests, setGuests] = useState([]);
+  const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    getEventByAdmin(adminCode)
-      .then(setEventMeta)
-      .catch(err => setError(err.message))
-      .finally(() => setLoading(false));
+    async function load() {
+      try {
+        const ev = await getEventByAdmin(adminCode);
+        setEventMeta(ev);
+        const [qs, gs, ts] = await Promise.all([
+          getQuestions(ev.id),
+          getGuests(ev.id),
+          getTeams(ev.id),
+        ]);
+        setQuestions(qs);
+        setGuests(gs);
+        setTeams(ts);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
   }, [adminCode]);
 
   const { submissions, outcomes, event: liveEvent } = useRealtimeDashboard(eventMeta?.id);
@@ -44,7 +68,19 @@ export default function AdminDashboard() {
   if (error) return <div className="flex items-center justify-center min-h-screen bg-surface"><p className="text-danger-500">{error}</p></div>;
   if (!event) return null;
 
+  const scoredQuestions = deriveScoredQuestions(questions).map((q, i) => ({ ...q, number: i + 1 }));
+  const totalScored = scoredQuestions.length;
   const resolvedCount = outcomes ? outcomes.filter(o => o.resolved).length : 0;
+
+  const tabSections = [
+    { id: 'overview', label: 'Overview' },
+    { id: 'submissions', label: 'Submissions' },
+    { id: 'guests', label: 'Guests' },
+    { id: 'scoring', label: 'Scoring' },
+    { id: 'leaderboard', label: 'Leaderboard' },
+    { id: 'tiebreaker', label: 'Tiebreaker' },
+    { id: 'matrix', label: 'Matrix' },
+  ];
 
   return (
     <div className="min-h-screen bg-surface pb-12">
@@ -53,10 +89,32 @@ export default function AdminDashboard() {
         <div className="max-w-4xl mx-auto px-4 py-8">
           <p className="text-brand-400 text-xs font-semibold uppercase tracking-widest mb-2">Admin dashboard</p>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white mb-1 tracking-tight">{event.name}</h1>
+          <div className="flex items-center gap-3 mt-3">
+            <Link
+              to={`/admin/${adminCode}/questions`}
+              className="text-xs bg-white/10 hover:bg-white/20 text-brand-200 px-3 py-1.5 rounded-lg font-semibold transition-colors duration-150"
+            >
+              Edit Questions
+            </Link>
+            <Link
+              to={`/admin/${adminCode}/analytics`}
+              className="text-xs bg-white/10 hover:bg-white/20 text-brand-200 px-3 py-1.5 rounded-lg font-semibold transition-colors duration-150"
+            >
+              Analytics
+            </Link>
+            {event.status === 'scoring' && (
+              <Link
+                to={`/admin/${adminCode}/reveal`}
+                className="text-xs bg-accent-500/20 hover:bg-accent-500/30 text-accent-300 px-3 py-1.5 rounded-lg font-semibold transition-colors duration-150"
+              >
+                Live Reveal
+              </Link>
+            )}
+          </div>
         </div>
       </div>
 
-      <StickyTabNav />
+      <StickyTabNav sections={tabSections} />
 
       <div className="max-w-4xl mx-auto px-4 -mt-5 space-y-8">
         <div id="section-overview">
@@ -66,7 +124,7 @@ export default function AdminDashboard() {
               <p className="text-xs text-gray-400 mt-0.5">submissions</p>
             </div>
             <div className="bg-white rounded-2xl shadow-sm shadow-gray-900/[0.04] p-4 text-center">
-              <p className="text-2xl font-extrabold text-gray-800">{resolvedCount}<span className="text-base font-normal text-gray-300">/{TOTAL_SCORED}</span></p>
+              <p className="text-2xl font-extrabold text-gray-800">{resolvedCount}<span className="text-base font-normal text-gray-300">/{totalScored}</span></p>
               <p className="text-xs text-gray-400 mt-0.5">scored</p>
             </div>
             <div className="bg-white rounded-2xl shadow-sm shadow-gray-900/[0.04] p-4 text-center">
@@ -79,32 +137,43 @@ export default function AdminDashboard() {
 
         <div id="section-submissions">
           <Section title="Submissions" count={submissions?.length || 0}
-            action={<button onClick={() => downloadCsv(event, submissions || [])} className="text-sm bg-white hover:bg-gray-50 border border-gray-200 px-4 py-2 rounded-xl font-semibold transition-colors duration-150 text-gray-600 shadow-sm">Export CSV</button>}>
+            action={<button onClick={() => downloadCsv(event, submissions || [], questions)} className="text-sm bg-white hover:bg-gray-50 border border-gray-200 px-4 py-2 rounded-xl font-semibold transition-colors duration-150 text-gray-600 shadow-sm">Export CSV</button>}>
             <SubmissionsTable submissions={submissions} />
+          </Section>
+        </div>
+
+        <div id="section-guests">
+          <Section title="Guest List" count={guests.length}>
+            <GuestListManager eventId={event.id} guests={guests} setGuests={setGuests} submissions={submissions} />
           </Section>
         </div>
 
         <div id="section-scoring">
           <Section title="Live scoring">
-            <ScoringPanel adminCode={adminCode} outcomes={outcomes} submissions={submissions} />
+            <ScoringPanel adminCode={adminCode} outcomes={outcomes} submissions={submissions} scoredQuestions={scoredQuestions} />
           </Section>
         </div>
 
         <div id="section-leaderboard">
           <Section title="Leaderboard">
             <Leaderboard submissions={submissions} outcomes={outcomes} winnerName={event.tie_winner_name} />
+            {event.teams_enabled && teams.length > 0 && (
+              <div className="mt-4">
+                <TeamLeaderboard teams={teams} submissions={submissions} />
+              </div>
+            )}
           </Section>
         </div>
 
         <div id="section-tiebreaker">
           <Section title="Tie breaker">
-            <TieBreakerControl adminCode={adminCode} event={event} submissions={submissions} />
+            <TieBreakerControl adminCode={adminCode} event={event} submissions={submissions} questions={questions} />
           </Section>
         </div>
 
         <div id="section-matrix">
           <Section title="Answer matrix">
-            <AnswerMatrix submissions={submissions} outcomes={outcomes} />
+            <AnswerMatrix submissions={submissions} outcomes={outcomes} scoredQuestions={scoredQuestions} />
           </Section>
         </div>
 
@@ -246,7 +315,7 @@ function SubmissionsTable({ submissions }) {
   );
 }
 
-function ScoringPanel({ adminCode, outcomes, submissions }) {
+function ScoringPanel({ adminCode, outcomes, submissions, scoredQuestions }) {
   const [undoMsg, setUndoMsg] = useState(null);
   const outcomeMap = {};
   if (outcomes) {
@@ -265,8 +334,8 @@ function ScoringPanel({ adminCode, outcomes, submissions }) {
           {undoMsg}
         </div>
       )}
-      {SCORED_QUESTIONS.map(q => (
-        <ScoringCard key={q.id} question={q} outcome={outcomeMap[q.id]} adminCode={adminCode} submissions={submissions} onUndo={showUndo} />
+      {scoredQuestions.map(q => (
+        <ScoringCard key={q.question_key} question={q} outcome={outcomeMap[q.question_key]} adminCode={adminCode} submissions={submissions} onUndo={showUndo} />
       ))}
     </div>
   );
@@ -282,17 +351,17 @@ function ScoringCard({ question, outcome, adminCode, submissions, onUndo }) {
     : question.options || [];
 
   const correctCount = isResolved && submissions
-    ? submissions.filter(s => s[question.id] === currentAnswer).length
+    ? submissions.filter(s => s.answers?.[question.question_key] === currentAnswer).length
     : null;
 
   async function handleScore(answer) {
     setSaving(true);
     try {
       if (isResolved && currentAnswer === answer) {
-        await scoreQuestion(adminCode, question.id, null, false);
+        await scoreQuestion(adminCode, question.question_key, null, false);
         onUndo(`Q${question.number} unscored — tap again to re-score`);
       } else {
-        await scoreQuestion(adminCode, question.id, answer, true);
+        await scoreQuestion(adminCode, question.question_key, answer, true);
         toast.success(`Q${question.number} scored: ${answer}`);
       }
     } catch {}
@@ -306,7 +375,7 @@ function ScoringCard({ question, outcome, adminCode, submissions, onUndo }) {
           <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-brand-100 text-brand-600 text-xs font-bold mr-2">
             {question.number}
           </span>
-          {question.text}
+          {question.label}
         </p>
         {isResolved && (
           <span className="text-xs bg-success-500 text-white px-2.5 py-1 rounded-full font-bold whitespace-nowrap">
@@ -341,9 +410,12 @@ function ScoringCard({ question, outcome, adminCode, submissions, onUndo }) {
   );
 }
 
-function TieBreakerControl({ adminCode, event, submissions }) {
+function TieBreakerControl({ adminCode, event, submissions, questions }) {
   const [saving, setSaving] = useState(false);
   const [overriding, setOverriding] = useState(false);
+
+  const tbQ = deriveTiebreakerQuestion(questions);
+  const tbKey = tbQ?.question_key || 'q15';
 
   const correctTime = event?.tie_breaker_answer;
   const autoWinner = event?.tie_winner_name;
@@ -387,7 +459,9 @@ function TieBreakerControl({ adminCode, event, submissions }) {
   return (
     <div className="space-y-4">
       <div className="bg-white rounded-2xl shadow-sm shadow-gray-900/[0.04] p-6">
-        <label className="block text-sm font-semibold text-gray-700 mb-3">What time did the bride actually leave?</label>
+        <label className="block text-sm font-semibold text-gray-700 mb-3">
+          {tbQ ? tbQ.label.replace(/^Tie breaker — /i, '') : 'What time did the bride actually leave?'}
+        </label>
         <div className="flex items-center gap-2">
           <input
             type="number"
@@ -464,7 +538,8 @@ function TieBreakerControl({ adminCode, event, submissions }) {
           </thead>
           <tbody className="divide-y divide-gray-50">
             {submissions.map(s => {
-              const guessMin = timeToMinutes(s.q15);
+              const guess = s.answers?.[tbKey] || '';
+              const guessMin = timeToMinutes(guess);
               const diff = correctMin !== null && guessMin !== null ? guessMin - correctMin : null;
               const isWinner = autoWinner === s.display_name;
               const isEarly = diff !== null && diff < 0;
@@ -475,7 +550,7 @@ function TieBreakerControl({ adminCode, event, submissions }) {
                     {s.display_name}
                     {isWinner && <span className="text-accent-500 text-xs ml-1.5 font-bold">★ winner</span>}
                   </td>
-                  <td className="px-5 py-3.5 text-gray-600">{s.q15}</td>
+                  <td className="px-5 py-3.5 text-gray-600">{guess}</td>
                   {correctMin !== null && (
                     <td className={`px-5 py-3.5 text-right text-xs font-mono ${isEarly ? 'text-danger-500' : 'text-success-600'}`}>
                       {diff !== null ? (

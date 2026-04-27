@@ -1,8 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
-import { getEventByInvite, submitAnswers } from '../lib/api';
-import { QUESTIONS, SURVEY_QUESTIONS } from '../../shared/questions.js';
+import { getEventByInvite, submitAnswers, getQuestions, deriveSurveyQuestions, deriveScoredQuestions, deriveNameQuestion } from '../lib/api';
 import PageTitle from '../components/PageTitle';
 import WagerPicker from '../components/WagerPicker';
 import { LoadingPage } from '../components/Skeleton';
@@ -34,54 +33,86 @@ export default function ParticipantSurvey() {
   const navigate = useNavigate();
   const location = useLocation();
   const [event, setEvent] = useState(location.state?.event || null);
+  const [questions, setQuestions] = useState([]);
   const [displayName] = useState(location.state?.displayName || sessionStorage.getItem(`wpb_name_${event?.id}`) || '');
   const [avatar] = useState(location.state?.avatar || sessionStorage.getItem(`wpb_avatar_${event?.id}`) || '');
-  const [answers, setAnswers] = useState(() => {
-    const initial = {};
-    for (const q of QUESTIONS) initial[q.id] = '';
-    if (location.state?.displayName) initial.q2 = location.state.displayName;
-
-    const eventId = location.state?.event?.id;
-    if (eventId) {
-      try {
-        const draft = JSON.parse(sessionStorage.getItem(`wpb_draft_${eventId}`) || '{}');
-        for (const key of Object.keys(draft)) {
-          if (draft[key]) initial[key] = draft[key];
-        }
-      } catch {}
-    }
-    if (location.state?.displayName) initial.q2 = location.state.displayName;
-    return initial;
-  });
+  const [answers, setAnswers] = useState({});
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [step, setStep] = useState(1);
   const [wagers, setWagers] = useState({});
+  const [showScrollHint, setShowScrollHint] = useState(true);
 
   useEffect(() => {
-    if (!event) {
-      getEventByInvite(inviteCode).then(e => {
-        setEvent(e);
-        if (!displayName) navigate(`/i/${inviteCode}`);
-      }).catch(() => navigate(`/i/${inviteCode}`));
+    async function load() {
+      let ev = event;
+      if (!ev) {
+        try {
+          ev = await getEventByInvite(inviteCode);
+          setEvent(ev);
+        } catch {
+          navigate(`/i/${inviteCode}`);
+          return;
+        }
+      }
+      if (!displayName && !location.state?.displayName) {
+        navigate(`/i/${inviteCode}`);
+        return;
+      }
+
+      const qs = await getQuestions(ev.id);
+      setQuestions(qs);
+
+      const initial = {};
+      for (const q of qs) initial[q.question_key] = '';
+      const nameQ = qs.find(q => q.is_name);
+      if (nameQ) initial[nameQ.question_key] = displayName || location.state?.displayName || '';
+
+      try {
+        const draft = JSON.parse(sessionStorage.getItem(`wpb_draft_${ev.id}`) || '{}');
+        for (const key of Object.keys(draft)) {
+          if (draft[key]) initial[key] = draft[key];
+        }
+      } catch {}
+      if (nameQ) initial[nameQ.question_key] = displayName || location.state?.displayName || '';
+
+      setAnswers(initial);
     }
-  }, [inviteCode, event, displayName, navigate]);
+    load();
+  }, [inviteCode, event, displayName, navigate, location.state]);
 
   useEffect(() => {
-    if (event?.id) {
+    if (event?.id && Object.keys(answers).length > 0) {
       sessionStorage.setItem(`wpb_draft_${event.id}`, JSON.stringify(answers));
     }
   }, [answers, event?.id]);
 
-  const progress = useMemo(() => {
-    const answered = SURVEY_QUESTIONS.filter(q => answers[q.id] && answers[q.id].trim()).length;
-    return Math.round((answered / SURVEY_QUESTIONS.length) * 100);
-  }, [answers]);
+  useEffect(() => {
+    function handleScroll() {
+      if (window.scrollY > 80) setShowScrollHint(false);
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
-  function setAnswer(qId, value) {
-    setAnswers(prev => ({ ...prev, [qId]: value }));
-    setErrors(prev => ({ ...prev, [qId]: '' }));
+  const surveyQuestions = useMemo(() => deriveSurveyQuestions([...questions]), [questions]);
+  const scoredQuestions = useMemo(() => deriveScoredQuestions(questions), [questions]);
+  const nameQuestion = useMemo(() => deriveNameQuestion(questions), [questions]);
+
+  const progress = useMemo(() => {
+    if (surveyQuestions.length === 0) return 0;
+    const answered = surveyQuestions.filter(q => answers[q.question_key]?.trim()).length;
+    return Math.round((answered / surveyQuestions.length) * 100);
+  }, [answers, surveyQuestions]);
+
+  const answeredCount = useMemo(() => {
+    return surveyQuestions.filter(q => answers[q.question_key]?.trim()).length;
+  }, [answers, surveyQuestions]);
+
+  function setAnswer(qKey, value) {
+    setAnswers(prev => ({ ...prev, [qKey]: value }));
+    setErrors(prev => ({ ...prev, [qKey]: '' }));
   }
 
   function handleNextStep(e) {
@@ -89,16 +120,16 @@ export default function ParticipantSurvey() {
     setSubmitError('');
 
     const newErrors = {};
-    for (const q of QUESTIONS) {
-      if (!answers[q.id] || !answers[q.id].trim()) {
-        newErrors[q.id] = 'Required';
+    for (const q of questions) {
+      if (!answers[q.question_key] || !answers[q.question_key].trim()) {
+        newErrors[q.question_key] = 'Required';
       }
     }
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
-      const firstErrorQ = SURVEY_QUESTIONS.find(q => newErrors[q.id]);
+      const firstErrorQ = surveyQuestions.find(q => newErrors[q.question_key]);
       if (firstErrorQ) {
-        document.getElementById(firstErrorQ.id)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        document.getElementById(firstErrorQ.question_key)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
       return;
     }
@@ -107,13 +138,13 @@ export default function ParticipantSurvey() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  function handleWagerChange(qId, value) {
+  function handleWagerChange(qKey, value) {
     setWagers(prev => {
       const next = { ...prev };
       if (value === 1) {
-        delete next[qId];
+        delete next[qKey];
       } else {
-        next[qId] = value;
+        next[qKey] = value;
       }
       return next;
     });
@@ -125,8 +156,9 @@ export default function ParticipantSurvey() {
     try {
       const tripleQ = Object.entries(wagers).find(([, v]) => v === 3)?.[0] || null;
       const doubleQ = Object.entries(wagers).find(([, v]) => v === 2)?.[0] || null;
+      const nameKey = nameQuestion?.question_key || 'q2';
       await submitAnswers(event.id, answers, tripleQ, doubleQ, avatar);
-      sessionStorage.setItem(`wpb_name_${event.id}`, answers.q2.trim());
+      sessionStorage.setItem(`wpb_name_${event.id}`, answers[nameKey].trim());
       sessionStorage.removeItem(`wpb_draft_${event.id}`);
       toast.success('Bets submitted! 🎲');
       navigate(`/i/${inviteCode}/dashboard`);
@@ -136,7 +168,7 @@ export default function ParticipantSurvey() {
     }
   }
 
-  if (!event) return <LoadingPage />;
+  if (!event || questions.length === 0) return <LoadingPage />;
 
   if (event.status !== 'open') {
     return (
@@ -150,20 +182,6 @@ export default function ParticipantSurvey() {
       </div>
     );
   }
-
-  const answeredCount = useMemo(() => {
-    return SURVEY_QUESTIONS.filter(q => answers[q.id] && answers[q.id].trim()).length;
-  }, [answers]);
-
-  const [showScrollHint, setShowScrollHint] = useState(true);
-
-  useEffect(() => {
-    function handleScroll() {
-      if (window.scrollY > 80) setShowScrollHint(false);
-    }
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   if (step === 2) {
     return (
@@ -179,6 +197,7 @@ export default function ParticipantSurvey() {
         <WagerPicker
           answers={answers}
           wagers={wagers}
+          scoredQuestions={scoredQuestions.map((q, i) => ({ ...q, number: i + 1 }))}
           onWagerChange={handleWagerChange}
           onBack={() => { setStep(1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
           onSubmit={handleFinalSubmit}
@@ -201,7 +220,7 @@ export default function ParticipantSurvey() {
         </div>
         <div className="bg-surface/90 backdrop-blur-sm border-b border-gray-100 px-4 py-1.5 text-center">
           <p className="text-xs text-gray-400 font-medium">
-            <span className="text-brand-600 font-bold">{answeredCount}</span> of {SURVEY_QUESTIONS.length} answered
+            <span className="text-brand-600 font-bold">{answeredCount}</span> of {surveyQuestions.length} answered
           </p>
         </div>
       </div>
@@ -223,17 +242,20 @@ export default function ParticipantSurvey() {
           </div>
         </div>
       )}
-        {SURVEY_QUESTIONS.map(q => {
-          const isTiebreaker = q.id === 'q15';
+        {surveyQuestions.map(q => {
+          const isTiebreaker = q.is_tiebreaker;
+          const qKey = q.question_key;
           const cardBase = isTiebreaker
-            ? `bg-accent-50 rounded-2xl p-4 sm:p-5 pt-7 shadow-sm border-2 transition-all duration-200 relative ${errors[q.id] ? 'border-danger-400' : 'border-accent-200'}`
-            : `bg-white rounded-2xl p-4 sm:p-5 shadow-sm border-2 transition-all duration-200 ${errors[q.id] ? 'border-danger-400 shadow-danger-100' : 'border-transparent shadow-gray-900/[0.04]'}`;
+            ? `bg-accent-50 rounded-2xl p-4 sm:p-5 pt-7 shadow-sm border-2 transition-all duration-200 relative ${errors[qKey] ? 'border-danger-400' : 'border-accent-200'}`
+            : `bg-white rounded-2xl p-4 sm:p-5 shadow-sm border-2 transition-all duration-200 ${errors[qKey] ? 'border-danger-400 shadow-danger-100' : 'border-transparent shadow-gray-900/[0.04]'}`;
           const numCircle = isTiebreaker
             ? 'inline-flex items-center justify-center w-6 h-6 rounded-full bg-accent-100 text-accent-500 text-xs font-bold mr-2'
             : 'inline-flex items-center justify-center w-6 h-6 rounded-full bg-brand-100 text-brand-600 text-xs font-bold mr-2';
 
+          const options = q.type === 'choice' ? (q.options || []) : [];
+
           return (
-          <div key={q.id} id={q.id} className={cardBase}>
+          <div key={qKey} id={qKey} className={cardBase}>
             {isTiebreaker && (
               <span className="absolute -top-3 left-5 bg-accent-500 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-sm">
                 Tiebreaker
@@ -241,15 +263,14 @@ export default function ParticipantSurvey() {
             )}
             <label className="block text-sm font-semibold text-gray-800 mb-3">
               <span className={numCircle}>{isTiebreaker ? 'TB' : q.number}</span>
-              {q.text}
-              {q.hint && <span className="text-gray-400 text-xs font-normal ml-1">({q.hint})</span>}
+              {q.label}
             </label>
 
             {q.type === 'text' && (
               <input
                 type="text"
-                value={answers[q.id]}
-                onChange={e => setAnswer(q.id, e.target.value)}
+                value={answers[qKey] || ''}
+                onChange={e => setAnswer(qKey, e.target.value)}
                 className="w-full border border-gray-200 rounded-xl px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 transition-all duration-200"
                 placeholder="Type your answer..."
               />
@@ -261,9 +282,9 @@ export default function ParticipantSurvey() {
                   <button
                     key={opt}
                     type="button"
-                    onClick={() => setAnswer(q.id, opt)}
+                    onClick={() => setAnswer(qKey, opt)}
                     className={`flex-1 py-3.5 rounded-xl border-2 text-base font-semibold transition-all duration-200 ${
-                      answers[q.id] === opt
+                      answers[qKey] === opt
                         ? 'bg-brand-600 text-white border-brand-600 shadow-md shadow-brand-600/20'
                         : 'bg-white text-gray-600 border-gray-200 hover:border-accent-300 hover:text-accent-500 active:scale-[0.98]'
                     }`}
@@ -280,9 +301,9 @@ export default function ParticipantSurvey() {
                   <button
                     key={opt}
                     type="button"
-                    onClick={() => setAnswer(q.id, opt)}
+                    onClick={() => setAnswer(qKey, opt)}
                     className={`flex-1 py-3.5 rounded-xl border-2 text-base font-semibold transition-all duration-200 ${
-                      answers[q.id] === opt
+                      answers[qKey] === opt
                         ? 'bg-brand-600 text-white border-brand-600 shadow-md shadow-brand-600/20'
                         : 'bg-white text-gray-600 border-gray-200 hover:border-accent-300 hover:text-accent-500 active:scale-[0.98]'
                     }`}
@@ -295,13 +316,13 @@ export default function ParticipantSurvey() {
 
             {q.type === 'choice' && (
               <div className="grid grid-cols-2 gap-2.5">
-                {q.options.map(opt => (
+                {options.map(opt => (
                   <button
                     key={opt}
                     type="button"
-                    onClick={() => setAnswer(q.id, opt)}
+                    onClick={() => setAnswer(qKey, opt)}
                     className={`py-3.5 rounded-xl border-2 text-sm font-semibold transition-all duration-200 ${
-                      answers[q.id] === opt
+                      answers[qKey] === opt
                         ? 'bg-brand-600 text-white border-brand-600 shadow-md shadow-brand-600/20'
                         : 'bg-white text-gray-600 border-gray-200 hover:border-accent-300 hover:text-accent-500 active:scale-[0.98]'
                     }`}
@@ -315,9 +336,9 @@ export default function ParticipantSurvey() {
             {q.type === 'time' && (
               <div className="relative">
                 <select
-                  value={answers[q.id]}
-                  onChange={e => setAnswer(q.id, e.target.value)}
-                  className={`w-full border border-gray-200 rounded-xl px-4 py-3 pr-10 text-base focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 transition-all duration-200 appearance-none bg-white ${!answers[q.id] ? 'text-gray-400' : 'text-gray-800'}`}
+                  value={answers[qKey] || ''}
+                  onChange={e => setAnswer(qKey, e.target.value)}
+                  className={`w-full border border-gray-200 rounded-xl px-4 py-3 pr-10 text-base focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 transition-all duration-200 appearance-none bg-white ${!answers[qKey] ? 'text-gray-400' : 'text-gray-800'}`}
                 >
                   <option value="">Select a time...</option>
                   {TIME_OPTIONS.map(t => (
@@ -328,7 +349,7 @@ export default function ParticipantSurvey() {
               </div>
             )}
 
-            {errors[q.id] && <p className="text-danger-500 text-xs mt-2 font-medium">{errors[q.id]}</p>}
+            {errors[qKey] && <p className="text-danger-500 text-xs mt-2 font-medium">{errors[qKey]}</p>}
           </div>
           );
         })}

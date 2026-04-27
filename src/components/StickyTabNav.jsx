@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 
-const SECTIONS = [
+const DEFAULT_SECTIONS = [
   { id: 'overview', label: 'Overview' },
   { id: 'submissions', label: 'Submissions' },
   { id: 'scoring', label: 'Scoring' },
@@ -9,12 +9,13 @@ const SECTIONS = [
   { id: 'matrix', label: 'Matrix' },
 ];
 
-export default function StickyTabNav() {
-  const [active, setActive] = useState(SECTIONS[0].id);
+export default function StickyTabNav({ sections }) {
+  const items = sections || DEFAULT_SECTIONS;
+  const [active, setActive] = useState(items[0]?.id);
   const observerRef = useRef(null);
 
   useEffect(() => {
-    const elements = SECTIONS.map(s => document.getElementById(`section-${s.id}`)).filter(Boolean);
+    const elements = items.map(s => document.getElementById(`section-${s.id}`)).filter(Boolean);
     if (elements.length === 0) return;
 
     observerRef.current = new IntersectionObserver(
@@ -32,7 +33,7 @@ export default function StickyTabNav() {
 
     for (const el of elements) observerRef.current.observe(el);
     return () => observerRef.current?.disconnect();
-  }, []);
+  }, [items]);
 
   function handleClick(id) {
     const el = document.getElementById(`section-${id}`);
@@ -44,7 +45,7 @@ export default function StickyTabNav() {
   return (
     <div className="sticky top-0 z-40 bg-surface/95 backdrop-blur-sm border-b border-gray-200/60">
       <div className="max-w-4xl mx-auto px-4 py-2 flex gap-1.5 overflow-x-auto scrollbar-hide">
-        {SECTIONS.map(s => (
+        {items.map(s => (
           <button
             key={s.id}
             onClick={() => handleClick(s.id)}
@@ -62,4 +63,4 @@ export default function StickyTabNav() {
   );
 }
 
-export { SECTIONS };
+export { DEFAULT_SECTIONS };

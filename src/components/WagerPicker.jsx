@@ -1,6 +1,4 @@
-import { SCORED_QUESTIONS } from '../../shared/questions.js';
-
-export default function WagerPicker({ answers, wagers, onWagerChange, onBack, onSubmit, submitting }) {
+export default function WagerPicker({ answers, wagers, onWagerChange, onBack, onSubmit, submitting, scoredQuestions }) {
   const tripleQ = Object.entries(wagers).find(([, v]) => v === 3)?.[0] || null;
   const doubleQ = Object.entries(wagers).find(([, v]) => v === 2)?.[0] || null;
 
@@ -29,9 +27,10 @@ export default function WagerPicker({ answers, wagers, onWagerChange, onBack, on
       </div>
 
       <div className="max-w-lg mx-auto px-4 -mt-3 space-y-3">
-        {SCORED_QUESTIONS.map(q => {
-          const wager = wagers[q.id] || 1;
-          const answer = answers[q.id];
+        {scoredQuestions.map(q => {
+          const qKey = q.question_key;
+          const wager = wagers[qKey] || 1;
+          const answer = answers[qKey];
 
           const borderClass =
             wager === 3
@@ -49,9 +48,9 @@ export default function WagerPicker({ answers, wagers, onWagerChange, onBack, on
 
           return (
             <button
-              key={q.id}
+              key={qKey}
               type="button"
-              onClick={() => handleCycle(q.id)}
+              onClick={() => handleCycle(qKey)}
               className={`w-full text-left bg-white rounded-2xl p-4 sm:p-5 shadow-sm border-2 transition-all duration-200 ${borderClass}`}
             >
               <div className="flex items-start justify-between gap-3">
@@ -60,7 +59,7 @@ export default function WagerPicker({ answers, wagers, onWagerChange, onBack, on
                     <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-brand-100 text-brand-600 text-xs font-bold mr-2">
                       {q.number}
                     </span>
-                    {q.text}
+                    {q.label}
                   </p>
                   {answer && (
                     <p className="text-xs text-gray-400 italic mt-1.5 ml-8">Your answer: {answer}</p>

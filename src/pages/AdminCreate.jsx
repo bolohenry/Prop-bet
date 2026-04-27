@@ -3,8 +3,11 @@ import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { createEvent } from '../lib/api';
 import PageTitle from '../components/PageTitle';
+import TemplatePicker from '../components/TemplatePicker';
 
 export default function AdminCreate() {
+  const [step, setStep] = useState(1);
+  const [selectedTemplate, setSelectedTemplate] = useState(undefined);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [result, setResult] = useState(null);
@@ -13,16 +16,22 @@ export default function AdminCreate() {
   const [copied, setCopied] = useState({});
   const [emailStatus, setEmailStatus] = useState(null);
 
+  function handleTemplateSelect(template) {
+    setSelectedTemplate(template);
+    setStep(2);
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
     if (!name.trim()) {
-      setError('Wedding name is required.');
+      setError('Event name is required.');
       return;
     }
     setLoading(true);
     try {
-      const data = await createEvent(name.trim());
+      const templateQs = selectedTemplate?.questions || null;
+      const data = await createEvent(name.trim(), templateQs);
       setResult(data);
       toast.success('Event created!');
 
@@ -97,7 +106,7 @@ export default function AdminCreate() {
                 <span className="text-base">🔗</span>
                 <label className="text-sm font-semibold text-white/90">Participant invite link</label>
               </div>
-              <p className="text-brand-400 text-xs mb-3">Share this with your wedding guests</p>
+              <p className="text-brand-400 text-xs mb-3">Share this with your guests</p>
               <div className="flex items-center gap-2">
                 <input readOnly value={inviteLink} className="flex-1 bg-white/[0.06] border border-white/[0.08] rounded-xl px-3 py-2.5 text-sm font-mono text-brand-200 focus:outline-none" />
                 <button
@@ -148,49 +157,69 @@ export default function AdminCreate() {
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--color-accent-500)_0%,_transparent_50%)] opacity-10" />
       <div className="max-w-lg mx-auto px-4 sm:px-8 pt-8 sm:pt-16 pb-12 relative z-10">
         <div className="text-center mb-10">
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-white mb-3 tracking-tight">Create a wedding event</h1>
-          <p className="text-brand-300 text-base">Set up your prop bet event — you'll get shareable links after creating.</p>
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-white mb-3 tracking-tight">Create an event</h1>
+          <p className="text-brand-300 text-base">
+            {step === 1 ? 'Choose a template to get started, or start from scratch.' : 'Name your event and create it.'}
+          </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white/[0.08] backdrop-blur-md border border-white/[0.08] rounded-2xl p-6 sm:p-8 space-y-6">
-          <div>
-            <label className="block text-sm font-semibold text-brand-200 mb-2">Whose wedding?</label>
-            <input
-              type="text"
-              value={name}
-              onChange={e => setName(e.target.value)}
-              placeholder="e.g. Paul & Marie"
-              className="w-full bg-white/[0.06] border border-white/[0.1] rounded-xl px-4 py-3.5 text-base text-white placeholder-brand-400/60 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500/50 transition-all duration-200"
-              autoFocus
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-semibold text-brand-200 mb-2">
-              Your email
-              <span className="text-brand-400/60 font-normal ml-1">(optional)</span>
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              className="w-full bg-white/[0.06] border border-white/[0.1] rounded-xl px-4 py-3.5 text-base text-white placeholder-brand-400/60 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500/50 transition-all duration-200"
-            />
-            <p className="text-brand-400/50 text-xs mt-1.5">We'll send you the event links so you don't lose them.</p>
-          </div>
-          {error && (
-            <div className="bg-danger-500/15 border border-danger-500/20 rounded-xl p-3">
-              <p className="text-danger-400 text-sm">{error}</p>
-            </div>
-          )}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-brand-600 hover:bg-accent-500 text-white py-4 rounded-xl text-base font-bold transition-all duration-200 disabled:opacity-50 shadow-lg shadow-brand-900/40 hover:shadow-accent-500/30"
-          >
-            {loading ? 'Creating...' : 'Create event'}
-          </button>
-        </form>
+        {step === 1 ? (
+          <TemplatePicker onSelect={handleTemplateSelect} />
+        ) : (
+          <>
+            <button
+              onClick={() => { setStep(1); setSelectedTemplate(undefined); }}
+              className="text-brand-400 text-xs font-semibold hover:text-brand-300 mb-4 inline-block transition-colors"
+            >
+              ← Change template
+            </button>
+            {selectedTemplate && (
+              <div className="bg-white/[0.06] border border-white/[0.08] rounded-xl px-4 py-3 mb-4 flex items-center gap-2">
+                <span className="text-sm">📋</span>
+                <p className="text-brand-300 text-sm">Template: <span className="font-semibold text-white">{selectedTemplate.name}</span></p>
+              </div>
+            )}
+            <form onSubmit={handleSubmit} className="bg-white/[0.08] backdrop-blur-md border border-white/[0.08] rounded-2xl p-6 sm:p-8 space-y-6">
+              <div>
+                <label className="block text-sm font-semibold text-brand-200 mb-2">Event name</label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={e => setName(e.target.value)}
+                  placeholder="e.g. Paul & Marie's Wedding"
+                  className="w-full bg-white/[0.06] border border-white/[0.1] rounded-xl px-4 py-3.5 text-base text-white placeholder-brand-400/60 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500/50 transition-all duration-200"
+                  autoFocus
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-brand-200 mb-2">
+                  Your email
+                  <span className="text-brand-400/60 font-normal ml-1">(optional)</span>
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  className="w-full bg-white/[0.06] border border-white/[0.1] rounded-xl px-4 py-3.5 text-base text-white placeholder-brand-400/60 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500/50 transition-all duration-200"
+                />
+                <p className="text-brand-400/50 text-xs mt-1.5">We'll send you the event links so you don't lose them.</p>
+              </div>
+              {error && (
+                <div className="bg-danger-500/15 border border-danger-500/20 rounded-xl p-3">
+                  <p className="text-danger-400 text-sm">{error}</p>
+                </div>
+              )}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-brand-600 hover:bg-accent-500 text-white py-4 rounded-xl text-base font-bold transition-all duration-200 disabled:opacity-50 shadow-lg shadow-brand-900/40 hover:shadow-accent-500/30"
+              >
+                {loading ? 'Creating...' : 'Create event'}
+              </button>
+            </form>
+          </>
+        )}
       </div>
     </div>
   );

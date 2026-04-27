@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { getEventByInvite, getSubmissions, getOutcomes } from '../lib/api';
-import { SCORED_QUESTIONS } from '../../shared/questions.js';
+import { getEventByInvite, getSubmissions, getOutcomes, getQuestions, deriveScoredQuestions } from '../lib/api';
 import PageTitle from '../components/PageTitle';
 import { LoadingPage } from '../components/Skeleton';
 
@@ -10,19 +9,22 @@ export default function ParticipantRecap() {
   const [event, setEvent] = useState(null);
   const [submissions, setSubmissions] = useState(null);
   const [outcomes, setOutcomes] = useState(null);
+  const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
       try {
         const ev = await getEventByInvite(inviteCode);
-        const [subs, outs] = await Promise.all([
+        const [subs, outs, qs] = await Promise.all([
           getSubmissions(ev.id),
           getOutcomes(ev.id),
+          getQuestions(ev.id),
         ]);
         setEvent(ev);
         setSubmissions(subs);
         setOutcomes(outs);
+        setQuestions(qs);
       } catch {}
       setLoading(false);
     }
@@ -31,6 +33,8 @@ export default function ParticipantRecap() {
 
   if (loading) return <LoadingPage />;
   if (!event || !submissions) return null;
+
+  const scoredQuestions = deriveScoredQuestions(questions).map((q, i) => ({ ...q, number: i + 1 }));
 
   const outcomeMap = {};
   if (outcomes) {
@@ -45,18 +49,18 @@ export default function ParticipantRecap() {
   const winnerName = event.tie_winner_name || winner?.display_name;
   const winnerSub = submissions.find(s => s.display_name === winnerName) || winner;
 
-  const resolvedQuestions = SCORED_QUESTIONS.filter(q => outcomeMap[q.id]?.resolved);
+  const resolvedQuestions = scoredQuestions.filter(q => outcomeMap[q.question_key]?.resolved);
 
   const biggestUpset = findBiggestUpset(resolvedQuestions, outcomeMap, submissions);
 
   const questionBreakdowns = resolvedQuestions.map(q => {
-    const outcome = outcomeMap[q.id];
-    const correctCount = submissions.filter(s => s[q.id] === outcome.answer).length;
+    const outcome = outcomeMap[q.question_key];
+    const correctCount = submissions.filter(s => s.answers?.[q.question_key] === outcome.answer).length;
     const pct = submissions.length > 0 ? Math.round((correctCount / submissions.length) * 100) : 0;
 
     const answerCounts = {};
     for (const s of submissions) {
-      const a = s[q.id] || '(no answer)';
+      const a = s.answers?.[q.question_key] || '(no answer)';
       answerCounts[a] = (answerCounts[a] || 0) + 1;
     }
     const popular = Object.entries(answerCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || '—';
@@ -76,7 +80,6 @@ export default function ParticipantRecap() {
       </div>
 
       <div className="max-w-2xl mx-auto px-4 -mt-5 space-y-6">
-        {/* Winner card */}
         {winnerSub && (
           <div className="bg-white rounded-2xl shadow-sm p-8 text-center">
             <div className="text-4xl mb-3">🏆</div>
@@ -85,7 +88,6 @@ export default function ParticipantRecap() {
           </div>
         )}
 
-        {/* Final standings */}
         <div className="bg-white rounded-2xl shadow-sm p-6">
           <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Final Standings</h3>
           <div className="space-y-2">
@@ -103,11 +105,10 @@ export default function ParticipantRecap() {
           </div>
         </div>
 
-        {/* Biggest upset */}
         {biggestUpset && (
           <div className="bg-white rounded-2xl shadow-sm p-6">
             <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Biggest Upset</h3>
-            <p className="text-sm font-semibold text-gray-800 mb-2">{biggestUpset.question.text}</p>
+            <p className="text-sm font-semibold text-gray-800 mb-2">{biggestUpset.question.label}</p>
             <p className="text-xs text-gray-500">
               Only {biggestUpset.correctCount}/{submissions.length} got it right.
               Correct: <span className="font-semibold text-success-600">{biggestUpset.correct}</span>
@@ -118,13 +119,12 @@ export default function ParticipantRecap() {
           </div>
         )}
 
-        {/* Question breakdown */}
         <div className="bg-white rounded-2xl shadow-sm p-6">
           <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Question Breakdown</h3>
           <div className="space-y-5">
             {questionBreakdowns.map(({ question, correct, correctCount, pct, popular }) => (
-              <div key={question.id}>
-                <p className="text-sm font-semibold text-gray-800 mb-1">{question.text}</p>
+              <div key={question.question_key}>
+                <p className="text-sm font-semibold text-gray-800 mb-1">{question.label}</p>
                 <div className="flex items-center gap-3 text-xs text-gray-500 mb-2">
                   <span className="text-success-600 font-semibold">✓ {correct}</span>
                   <span>{correctCount}/{submissions.length} correct ({pct}%)</span>
@@ -141,8 +141,7 @@ export default function ParticipantRecap() {
           </div>
         </div>
 
-        {/* Shareable recap card */}
-        <RecapCard event={event} winner={winnerSub} sorted={sorted} />
+        <RecapCard event={event} winner={winnerSub} sorted={sorted} scoredCount={scoredQuestions.length} />
 
         <div className="text-center pt-2 pb-4">
           <Link
@@ -164,8 +163,8 @@ function findBiggestUpset(resolvedQuestions, outcomeMap, submissions) {
   let worstPct = 1;
 
   for (const q of resolvedQuestions) {
-    const outcome = outcomeMap[q.id];
-    const correctCount = submissions.filter(s => s[q.id] === outcome.answer).length;
+    const outcome = outcomeMap[q.question_key];
+    const correctCount = submissions.filter(s => s.answers?.[q.question_key] === outcome.answer).length;
     const pct = correctCount / submissions.length;
 
     if (pct < worstPct) {
@@ -173,7 +172,7 @@ function findBiggestUpset(resolvedQuestions, outcomeMap, submissions) {
 
       const answerCounts = {};
       for (const s of submissions) {
-        const a = s[q.id] || '(no answer)';
+        const a = s.answers?.[q.question_key] || '(no answer)';
         answerCounts[a] = (answerCounts[a] || 0) + 1;
       }
       const popular = Object.entries(answerCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || '—';
@@ -185,7 +184,7 @@ function findBiggestUpset(resolvedQuestions, outcomeMap, submissions) {
   return worst;
 }
 
-function RecapCard({ event, winner, sorted }) {
+function RecapCard({ event, winner, sorted, scoredCount }) {
   const cardRef = useRef(null);
   const [downloading, setDownloading] = useState(false);
   const [sharing, setSharing] = useState(false);
@@ -266,7 +265,7 @@ function RecapCard({ event, winner, sorted }) {
           <div className="flex items-center justify-center gap-4 text-xs text-brand-400 border-t border-white/10 pt-3">
             <span>{sorted.length} players</span>
             <span>·</span>
-            <span>{SCORED_QUESTIONS.length} questions</span>
+            <span>{scoredCount} questions</span>
           </div>
           <p className="text-brand-500/60 text-[10px] mt-2">weddingpropbets.com</p>
         </div>

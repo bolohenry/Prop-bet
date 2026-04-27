@@ -40,7 +40,7 @@ export function computeTieBreakerWinner(correctTime, submissions) {
   const candidates = submissions
     .map(s => ({
       name: s.display_name,
-      minutes: timeToMinutes(s.q15),
+      minutes: timeToMinutes(s.q15 || s.answers?.q15),
     }))
     .filter(c => c.minutes !== null);
 

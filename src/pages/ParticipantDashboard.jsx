@@ -1,8 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { getEventByInvite, getSubmission } from '../lib/api';
+import { getEventByInvite, getSubmission, getQuestions, deriveSurveyQuestions, deriveScoredQuestions } from '../lib/api';
 import { useRealtimeDashboard } from '../lib/useRealtimeDashboard';
-import { SURVEY_QUESTIONS } from '../../shared/questions.js';
 import PageTitle from '../components/PageTitle';
 import Leaderboard from '../components/Leaderboard';
 import AnswerMatrix from '../components/AnswerMatrix';
@@ -15,6 +14,7 @@ export default function ParticipantDashboard() {
   const [eventId, setEventId] = useState(null);
   const [eventMeta, setEventMeta] = useState(null);
   const [submission, setSubmission] = useState(null);
+  const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAnswers, setShowAnswers] = useState(false);
 
@@ -28,10 +28,14 @@ export default function ParticipantDashboard() {
         const name = sessionStorage.getItem(`wpb_name_${ev.id}`);
         if (!name) { navigate(`/i/${inviteCode}`); return; }
 
-        const sub = await getSubmission(ev.id, name);
+        const [sub, qs] = await Promise.all([
+          getSubmission(ev.id, name),
+          getQuestions(ev.id),
+        ]);
         if (!sub) { navigate(`/i/${inviteCode}`); return; }
 
         setSubmission(sub);
+        setQuestions(qs);
       } catch {
         navigate(`/i/${inviteCode}`);
       } finally {
@@ -45,6 +49,10 @@ export default function ParticipantDashboard() {
   const event = liveEvent || eventMeta;
 
   const currentSub = submissions?.find(s => s.display_name === submission?.display_name) || submission;
+
+  const surveyQuestions = useMemo(() => deriveSurveyQuestions([...questions]), [questions]);
+  const scoredQuestions = useMemo(() => deriveScoredQuestions(questions).map((q, i) => ({ ...q, number: i + 1 })), [questions]);
+  const totalScored = scoredQuestions.length;
 
   if (loading) return <LoadingPage />;
   if (!event || !submission) return null;
@@ -67,14 +75,13 @@ export default function ParticipantDashboard() {
       </div>
 
       <div className="max-w-3xl mx-auto px-4 -mt-5 space-y-6">
-        {/* Confirmation banner */}
         <div className="bg-brand-600 rounded-2xl p-5 shadow-lg shadow-brand-600/20">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <span className="text-xl">✅</span>
               <div>
                 <p className="text-white font-semibold text-sm">Locked in as {currentSub?.display_name || submission.display_name}</p>
-                <p className="text-brand-200 text-xs">{currentSub?.total_points ?? submission.total_points} pts · {resolvedCount} of 12 scored</p>
+                <p className="text-brand-200 text-xs">{currentSub?.total_points ?? submission.total_points} pts · {resolvedCount} of {totalScored} scored</p>
               </div>
             </div>
             <button
@@ -87,19 +94,19 @@ export default function ParticipantDashboard() {
 
           {showAnswers && (
             <div className="mt-4 pt-4 border-t border-white/10 space-y-2">
-              {SURVEY_QUESTIONS.map(q => {
-                const answer = submission[q.id];
-                const outcome = outcomeMap[q.id];
+              {surveyQuestions.map(q => {
+                const answer = submission.answers?.[q.question_key];
+                const outcome = outcomeMap[q.question_key];
                 const isResolved = outcome?.resolved;
                 const isCorrect = isResolved && outcome.answer === answer;
 
                 return (
-                  <div key={q.id} className="flex items-center justify-between gap-2 text-sm">
-                    <span className="text-brand-200/70 truncate flex-1">Q{q.number}. {q.text}</span>
+                  <div key={q.question_key} className="flex items-center justify-between gap-2 text-sm">
+                    <span className="text-brand-200/70 truncate flex-1">Q{q.number}. {q.label}</span>
                     <div className="flex items-center gap-1.5 shrink-0">
                       <span className="text-white font-medium">{answer}</span>
-                      {submission.wager_3x === q.id && <span className="text-brand-300 text-xs font-bold">3×</span>}
-                      {submission.wager_2x === q.id && <span className="text-accent-300 text-xs font-bold">2×</span>}
+                      {submission.wager_3x === q.question_key && <span className="text-brand-300 text-xs font-bold">3×</span>}
+                      {submission.wager_2x === q.question_key && <span className="text-accent-300 text-xs font-bold">2×</span>}
                       {q.scored && isResolved && (
                         <span className={`text-xs ${isCorrect ? 'text-green-300' : 'text-red-300'}`}>
                           {isCorrect ? '✓' : '✗'}
@@ -113,7 +120,6 @@ export default function ParticipantDashboard() {
           )}
         </div>
 
-        {/* Leaderboard */}
         {submissions && (
           <section>
             <h2 className="text-base font-bold text-gray-800 mb-3 tracking-tight">Leaderboard</h2>
@@ -126,11 +132,10 @@ export default function ParticipantDashboard() {
           </section>
         )}
 
-        {/* Answer matrix */}
         {submissions && (
           <section>
             <h2 className="text-base font-bold text-gray-800 mb-3 tracking-tight">Answer matrix</h2>
-            <AnswerMatrix submissions={submissions} outcomes={outcomes} />
+            <AnswerMatrix submissions={submissions} outcomes={outcomes} scoredQuestions={scoredQuestions} />
           </section>
         )}
 
