@@ -167,7 +167,7 @@ export default function AdminReveal() {
 
         {isActive && allRevealed && countdown === 0 && (
           <div className="mt-8">
-            <WinnerScreen submissions={submissions} tieWinnerName={event.tie_winner_name} />
+            <WinnerScreen submissions={submissions} tieWinnerName={event.tie_winner_name} compact />
           </div>
         )}
       </div>
