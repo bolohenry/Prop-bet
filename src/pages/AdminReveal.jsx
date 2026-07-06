@@ -5,6 +5,7 @@ import { getEventByAdmin, getQuestions, setRevealMode, revealNext, deriveScoredQ
 import { useRealtimeDashboard } from '../lib/useRealtimeDashboard';
 import PageTitle from '../components/PageTitle';
 import Leaderboard from '../components/Leaderboard';
+import WinnerScreen from '../components/WinnerScreen';
 import { LoadingPage } from '../components/Skeleton';
 
 export default function AdminReveal() {
@@ -150,17 +151,23 @@ export default function AdminReveal() {
 
             {allRevealed && countdown === 0 && (
               <div className="text-center py-8">
-                <div className="text-4xl mb-3">🎉</div>
-                <p className="text-xl font-extrabold text-white mb-2">All questions revealed!</p>
-                <button onClick={handleStop} className="mt-4 px-6 py-3 bg-white/10 hover:bg-white/20 text-brand-200 rounded-xl font-semibold transition-colors">
+                <button onClick={handleStop} className="px-6 py-3 bg-white/10 hover:bg-white/20 text-brand-200 rounded-xl font-semibold transition-colors">
                   End Reveal Mode
                 </button>
               </div>
             )}
 
-            <div className="pt-4">
-              <Leaderboard submissions={submissions} outcomes={outcomes} winnerName={event.tie_winner_name} />
-            </div>
+            {!allRevealed && (
+              <div className="pt-4">
+                <Leaderboard submissions={submissions} outcomes={outcomes} winnerName={event.tie_winner_name} />
+              </div>
+            )}
+          </div>
+        )}
+
+        {isActive && allRevealed && countdown === 0 && (
+          <div className="mt-8">
+            <WinnerScreen submissions={submissions} tieWinnerName={event.tie_winner_name} />
           </div>
         )}
       </div>
