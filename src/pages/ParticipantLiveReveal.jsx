@@ -1,9 +1,11 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getEventByInvite, getQuestions, deriveScoredQuestions, getSubmission } from '../lib/api';
 import { useRealtimeDashboard } from '../lib/useRealtimeDashboard';
 import PageTitle from '../components/PageTitle';
 import Leaderboard from '../components/Leaderboard';
+import Confetti from '../components/Confetti';
+import WinnerScreen from '../components/WinnerScreen';
 import { LoadingPage } from '../components/Skeleton';
 
 export default function ParticipantLiveReveal() {
@@ -12,8 +14,9 @@ export default function ParticipantLiveReveal() {
   const [questions, setQuestions] = useState([]);
   const [mySubmission, setMySubmission] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [prevIndex, setPrevIndex] = useState(-1);
+  const prevIndexRef = useRef(-1);
   const [showResult, setShowResult] = useState(false);
+  const [showWinner, setShowWinner] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -48,15 +51,24 @@ export default function ParticipantLiveReveal() {
   const revealOrder = event?.reveal_order || [];
   const currentIndex = event?.current_reveal_index ?? -1;
   const isActive = event?.reveal_mode;
+  const allRevealed = revealOrder.length > 0 && currentIndex >= revealOrder.length - 1;
 
   useEffect(() => {
-    if (currentIndex > prevIndex) {
+    if (currentIndex > prevIndexRef.current) {
       setShowResult(false);
       const timer = setTimeout(() => setShowResult(true), 500);
-      setPrevIndex(currentIndex);
+      prevIndexRef.current = currentIndex;
       return () => clearTimeout(timer);
     }
-  }, [currentIndex, prevIndex]);
+  }, [currentIndex]);
+
+  useEffect(() => {
+    if (allRevealed && showResult) {
+      const timer = setTimeout(() => setShowWinner(true), 2500);
+      return () => clearTimeout(timer);
+    }
+    setShowWinner(false);
+  }, [allRevealed, showResult]);
 
   if (loading) return <LoadingPage dark />;
   if (!event) return null;
@@ -74,6 +86,10 @@ export default function ParticipantLiveReveal() {
         </div>
       </div>
     );
+  }
+
+  if (showWinner) {
+    return <WinnerScreen submissions={submissions} tieWinnerName={event.tie_winner_name} />;
   }
 
   const currentKey = revealOrder[currentIndex];
@@ -114,6 +130,7 @@ export default function ParticipantLiveReveal() {
                   <p className="text-white font-extrabold text-xl">{currentOutcome.answer}</p>
                 </div>
               )}
+              <Confetti fire={showResult && isCorrect} />
             </div>
 
             <Leaderboard
