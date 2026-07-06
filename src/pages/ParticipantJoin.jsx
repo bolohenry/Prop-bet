@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getEventByInvite, checkName, getSubmission } from '../lib/api';
+import { getEventByInvite, checkName, getSubmission, findSimilarSubmissions } from '../lib/api';
 import PageTitle from '../components/PageTitle';
 import AvatarPicker from '../components/AvatarPicker';
 import { LoadingPage } from '../components/Skeleton';
@@ -15,6 +15,7 @@ export default function ParticipantJoin() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [checking, setChecking] = useState(false);
+  const [suggestion, setSuggestion] = useState(null);
 
   useEffect(() => {
     getEventByInvite(inviteCode)
@@ -23,23 +24,13 @@ export default function ParticipantJoin() {
       .finally(() => setLoading(false));
   }, [inviteCode]);
 
-  async function handleContinue(e) {
-    e.preventDefault();
-    setError('');
-    const name = displayName.trim();
-    if (!name) { setError('Please enter your name.'); return; }
+  function routeToExistingDashboard(existingName) {
+    sessionStorage.setItem(`wpb_name_${event.id}`, existingName);
+    if (avatar) sessionStorage.setItem(`wpb_avatar_${event.id}`, avatar);
+    navigate(`/i/${inviteCode}/dashboard`);
+  }
 
-    setChecking(true);
-    try {
-      const existing = await getSubmission(event.id, name);
-      if (existing) {
-        sessionStorage.setItem(`wpb_name_${event.id}`, name);
-        if (avatar) sessionStorage.setItem(`wpb_avatar_${event.id}`, avatar);
-        navigate(`/i/${inviteCode}/dashboard`);
-        return;
-      }
-    } catch {}
-
+  async function proceedAsNewName(name) {
     try {
       const { taken } = await checkName(event.id, name);
       if (taken) {
@@ -56,6 +47,44 @@ export default function ParticipantJoin() {
     sessionStorage.setItem(`wpb_name_${event.id}`, name);
     if (avatar) sessionStorage.setItem(`wpb_avatar_${event.id}`, avatar);
     navigate(`/i/${inviteCode}/survey`, { state: { displayName: name, avatar, event } });
+  }
+
+  async function handleContinue(e) {
+    e.preventDefault();
+    setError('');
+    const name = displayName.trim();
+    if (!name) { setError('Please enter your name.'); return; }
+
+    setChecking(true);
+    try {
+      const existing = await getSubmission(event.id, name);
+      if (existing) {
+        routeToExistingDashboard(existing.display_name);
+        return;
+      }
+    } catch {}
+
+    try {
+      const similar = await findSimilarSubmissions(event.id, name);
+      if (similar.length === 1) {
+        setSuggestion(similar[0].display_name);
+        setChecking(false);
+        return;
+      }
+    } catch {}
+
+    await proceedAsNewName(name);
+  }
+
+  function confirmSuggestion() {
+    routeToExistingDashboard(suggestion);
+  }
+
+  function dismissSuggestion() {
+    const name = displayName.trim();
+    setSuggestion(null);
+    setChecking(true);
+    proceedAsNewName(name);
   }
 
   if (loading) return <LoadingPage dark />;
@@ -78,8 +107,30 @@ export default function ParticipantJoin() {
           </div>
         ) : (
           <div className="bg-white/[0.08] backdrop-blur-md border border-white/[0.08] rounded-2xl p-6 sm:p-8">
-            <p className="text-brand-300 text-sm mb-6">Place your bets and see how you stack up.</p>
-            <form onSubmit={handleContinue} className="space-y-5">
+            {suggestion ? (
+              <div className="text-center space-y-5">
+                <p className="text-brand-200 text-base">
+                  Did you mean <span className="font-bold text-white">{suggestion}</span>?
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={confirmSuggestion}
+                    className="flex-1 bg-brand-600 hover:bg-accent-500 text-white py-3.5 rounded-xl text-sm font-bold transition-all duration-200"
+                  >
+                    Yes, that's me
+                  </button>
+                  <button
+                    onClick={dismissSuggestion}
+                    className="flex-1 bg-white/[0.06] border border-white/[0.1] text-brand-200 py-3.5 rounded-xl text-sm font-bold transition-all duration-200"
+                  >
+                    No, continue as "{displayName.trim()}"
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <p className="text-brand-300 text-sm mb-6">Place your bets and see how you stack up.</p>
+                <form onSubmit={handleContinue} className="space-y-5">
               <div>
                 <label className="block text-sm font-semibold text-brand-200 mb-2">Your name</label>
                 <input
@@ -118,7 +169,9 @@ export default function ParticipantJoin() {
               >
                 {checking ? 'Checking...' : 'Continue'}
               </button>
-            </form>
+                </form>
+              </>
+            )}
           </div>
         )}
       </div>
