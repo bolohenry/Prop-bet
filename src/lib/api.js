@@ -1,6 +1,7 @@
 import { supabase } from './supabase';
 import { DEFAULT_QUESTIONS } from '../../shared/questions.js';
 import { computeTieBreakerWinner } from '../../shared/tiebreaker.js';
+import { isSimilarName } from './matching.js';
 
 function nanoid(len = 8) {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -223,6 +224,15 @@ export async function getSubmission(eventId, name) {
     .ilike('display_name', name.trim())
     .single();
   return data || null;
+}
+
+export async function findSimilarSubmissions(eventId, name) {
+  const { data } = await supabase
+    .from('submissions')
+    .select('display_name')
+    .eq('event_id', eventId);
+  if (!data) return [];
+  return data.filter(s => isSimilarName(s.display_name, name));
 }
 
 export async function getSubmissions(eventId) {
