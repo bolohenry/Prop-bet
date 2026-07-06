@@ -4,7 +4,7 @@ import { getEventByInvite, getSubmission, getQuestions, deriveSurveyQuestions, d
 import { useRealtimeDashboard } from '../lib/useRealtimeDashboard';
 import PageTitle from '../components/PageTitle';
 import Leaderboard from '../components/Leaderboard';
-import AnswerMatrix from '../components/AnswerMatrix';
+import MyResults from '../components/MyResults';
 import ShareButton from '../components/ShareButton';
 import { LoadingPage } from '../components/Skeleton';
 
@@ -132,12 +132,16 @@ export default function ParticipantDashboard() {
           </section>
         )}
 
-        {submissions && (
-          <section>
-            <h2 className="text-base font-bold text-gray-800 mb-3 tracking-tight">Answer matrix</h2>
-            <AnswerMatrix submissions={submissions} outcomes={outcomes} scoredQuestions={scoredQuestions} />
-          </section>
-        )}
+        <section>
+          <h2 className="text-base font-bold text-gray-800 mb-3 tracking-tight">Your results</h2>
+          <MyResults
+            scoredQuestions={scoredQuestions}
+            answers={submission.answers}
+            outcomeMap={outcomeMap}
+            wager3xKey={submission.wager_3x}
+            wager2xKey={submission.wager_2x}
+          />
+        </section>
 
         {event.status === 'finalized' && (
           <div className="text-center">
