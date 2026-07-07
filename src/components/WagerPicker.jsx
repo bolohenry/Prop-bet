@@ -5,12 +5,14 @@ export default function WagerPicker({ answers, wagers, onWagerChange, onBack, on
   function handleCycle(qId) {
     const current = wagers[qId] || 1;
     let next;
-    if (current === 1) {
-      next = tripleQ ? (doubleQ ? 1 : 2) : 3;
-    } else if (current === 2) {
-      next = tripleQ ? 1 : 3;
+    if (current === 2 || current === 3) {
+      next = 1;
+    } else if (!tripleQ) {
+      next = 3;
+    } else if (!doubleQ) {
+      next = 2;
     } else {
-      next = doubleQ ? 1 : 2;
+      next = 1;
     }
 
     onWagerChange(qId, next);
