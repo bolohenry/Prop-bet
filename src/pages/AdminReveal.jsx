@@ -8,12 +8,14 @@ import Leaderboard from '../components/Leaderboard';
 import WinnerScreen from '../components/WinnerScreen';
 import { LoadingPage } from '../components/Skeleton';
 
+const REVEAL_DWELL_MS = 4500;
+
 export default function AdminReveal() {
   const { adminCode } = useParams();
   const [eventMeta, setEventMeta] = useState(null);
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [revealing, setRevealing] = useState(false);
+  const [paused, setPaused] = useState(false);
   const [lastRevealed, setLastRevealed] = useState(null);
   const [countdown, setCountdown] = useState(0);
 
@@ -48,32 +50,15 @@ export default function AdminReveal() {
 
   async function handleStart() {
     const order = scoredQuestions.map(q => q.question_key);
+    setPaused(false);
+    setLastRevealed(null);
+    setCountdown(0);
     try {
       await setRevealMode(adminCode, true, order);
       toast.success('Reveal mode started!');
     } catch (err) {
       toast.error(err.message);
     }
-  }
-
-  async function handleRevealNext() {
-    setRevealing(true);
-    setCountdown(3);
-
-    for (let i = 3; i > 0; i--) {
-      setCountdown(i);
-      await new Promise(r => setTimeout(r, 1000));
-    }
-    setCountdown(0);
-
-    try {
-      const result = await revealNext(adminCode);
-      setLastRevealed(result);
-      toast.success(`Revealed: ${questionMap[result.questionKey]?.label}`);
-    } catch (err) {
-      toast.error(err.message);
-    }
-    setRevealing(false);
   }
 
   async function handleStop() {
@@ -84,6 +69,62 @@ export default function AdminReveal() {
       toast.error(err.message);
     }
   }
+
+  // Auto-advance loop: drives the 3-2-1 countdown -> revealNext -> dwell cycle on its own
+  // once reveal mode is active. Deliberately does NOT depend on `currentIndex` — that value
+  // only changes via the realtime echo of our own revealNext() calls, and re-running this
+  // effect on every tick would restart the countdown mid-cycle. `currentIndex` is only read
+  // once, as the loop's starting point (so a page refresh mid-reveal resumes correctly).
+  useEffect(() => {
+    if (!isActive || paused) return;
+    if (revealOrder.length === 0) return;
+    if (currentIndex >= revealOrder.length - 1) return;
+
+    let cancelled = false;
+    const timers = [];
+    const wait = ms => new Promise(resolve => {
+      timers.push(setTimeout(resolve, ms));
+    });
+
+    async function loop() {
+      let idx = currentIndex;
+      while (idx < revealOrder.length - 1) {
+        if (cancelled) return;
+        for (let i = 3; i > 0; i--) {
+          if (cancelled) return;
+          setCountdown(i);
+          await wait(1000);
+        }
+        if (cancelled) return;
+        setCountdown(0);
+
+        let result;
+        try {
+          result = await revealNext(adminCode);
+        } catch (err) {
+          toast.error(err.message);
+          setPaused(true);
+          return;
+        }
+
+        setLastRevealed(result);
+        toast.success(`Revealed: ${questionMap[result.questionKey]?.label}`);
+        idx = result.index;
+
+        if (cancelled || idx >= revealOrder.length - 1) return;
+        await wait(REVEAL_DWELL_MS);
+      }
+    }
+
+    loop();
+
+    return () => {
+      cancelled = true;
+      timers.forEach(clearTimeout);
+      setCountdown(0);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isActive, paused, revealOrder.length, adminCode]);
 
   if (loading) return <LoadingPage />;
   if (!event) return null;
@@ -115,10 +156,21 @@ export default function AdminReveal() {
             <div className="flex items-center justify-between">
               <p className="text-brand-300 text-sm">
                 {currentIndex + 1} of {revealOrder.length} revealed
+                {paused && !allRevealed && <span className="ml-2 text-warn-500 font-bold uppercase tracking-wide text-xs">Paused</span>}
               </p>
-              <button onClick={handleStop} className="text-xs text-danger-400 hover:text-danger-300 font-semibold">
-                End Reveal
-              </button>
+              <div className="flex items-center gap-4">
+                {!allRevealed && (
+                  <button
+                    onClick={() => setPaused(p => !p)}
+                    className="text-xs text-brand-200 hover:text-white font-semibold border border-white/20 rounded-lg px-3 py-1.5 transition-colors"
+                  >
+                    {paused ? 'Resume' : 'Pause'}
+                  </button>
+                )}
+                <button onClick={handleStop} className="text-xs text-danger-400 hover:text-danger-300 font-semibold">
+                  End Reveal
+                </button>
+              </div>
             </div>
 
             {countdown > 0 && (
@@ -134,18 +186,6 @@ export default function AdminReveal() {
                 <div className="inline-block bg-success-500 text-white px-6 py-3 rounded-xl text-lg font-extrabold">
                   {lastRevealed.answer}
                 </div>
-              </div>
-            )}
-
-            {countdown === 0 && !allRevealed && (
-              <div className="text-center">
-                <button
-                  onClick={handleRevealNext}
-                  disabled={revealing}
-                  className="px-10 py-5 bg-brand-600 hover:bg-accent-500 text-white text-lg font-extrabold rounded-2xl transition-all duration-200 shadow-xl shadow-brand-600/30 disabled:opacity-50"
-                >
-                  {revealing ? 'Revealing...' : `Reveal Question ${currentIndex + 2}`}
-                </button>
               </div>
             )}
 
