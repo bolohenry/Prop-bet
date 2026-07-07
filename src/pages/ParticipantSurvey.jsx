@@ -96,6 +96,15 @@ export default function ParticipantSurvey() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Scroll to the top whenever we switch between the survey and wagers step.
+  // Doing this here (after the new step's content has actually painted)
+  // instead of calling window.scrollTo() inline in the click handler avoids
+  // a smooth-scroll animation racing the page's height shrinking out from
+  // under it and landing at the bottom of the shorter page instead of the top.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [step]);
+
   const surveyQuestions = useMemo(() => deriveSurveyQuestions([...questions]), [questions]);
   const scoredQuestions = useMemo(() => deriveScoredQuestions(questions), [questions]);
   const nameQuestion = useMemo(() => deriveNameQuestion(questions), [questions]);
@@ -135,19 +144,14 @@ export default function ParticipantSurvey() {
     }
 
     setStep(2);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   function handleWagerChange(qKey, value) {
+    // WagerPicker's cycle logic already refuses to hand out a multiplier
+    // that's held by a different question, so this only ever sets/clears
+    // the tapped question's own wager.
     setWagers(prev => {
       const next = { ...prev };
-      if (value !== 1) {
-        // Only one question can hold a given multiplier at a time — bump
-        // whichever question currently has it back to no wager.
-        for (const key of Object.keys(next)) {
-          if (key !== qKey && next[key] === value) delete next[key];
-        }
-      }
       if (value === 1) {
         delete next[qKey];
       } else {
@@ -206,7 +210,7 @@ export default function ParticipantSurvey() {
           wagers={wagers}
           scoredQuestions={scoredQuestions.map((q, i) => ({ ...q, number: i + 1 }))}
           onWagerChange={handleWagerChange}
-          onBack={() => { setStep(1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+          onBack={() => setStep(1)}
           onSubmit={handleFinalSubmit}
           submitting={submitting}
         />

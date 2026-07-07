@@ -4,10 +4,22 @@ export default function WagerPicker({ answers, wagers, onWagerChange, onBack, on
 
   function handleCycle(qId) {
     const current = wagers[qId] || 1;
-    // Cycle each question independently through no-wager → 2× → 3× → no-wager.
-    // If another question already holds the multiplier we're cycling into,
-    // onWagerChange (in the parent) bumps that question back to no-wager.
-    const next = current === 1 ? 2 : current === 2 ? 3 : 1;
+    // Cycle through no-wager -> 2x -> 3x -> no-wager, but skip any multiplier
+    // that's already held by a DIFFERENT question — tapping one question should
+    // never steal a wager away from another. If the other multiplier is taken,
+    // cycling skips straight past it (e.g. holding 2x with 3x taken elsewhere
+    // cycles straight to no-wager instead of stealing 3x).
+    const heldByOther2 = doubleQ !== null && doubleQ !== qId;
+    const heldByOther3 = tripleQ !== null && tripleQ !== qId;
+    const order = [1, 2, 3];
+    const startIdx = order.indexOf(current);
+    let next = 1;
+    for (let i = 1; i <= 3; i++) {
+      const candidate = order[(startIdx + i) % 3];
+      if (candidate === 1) { next = 1; break; }
+      if (candidate === 2 && !heldByOther2) { next = 2; break; }
+      if (candidate === 3 && !heldByOther3) { next = 3; break; }
+    }
     onWagerChange(qId, next);
   }
 
