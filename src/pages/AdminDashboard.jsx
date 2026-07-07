@@ -118,6 +118,7 @@ export default function AdminDashboard() {
 
       <div className="max-w-4xl mx-auto px-4 mt-6 space-y-8">
         <div id="section-overview">
+          <InviteLinkCard inviteCode={event.invite_code} />
           <div className="grid grid-cols-3 gap-3 mb-6">
             <div className="bg-white rounded-2xl shadow-sm shadow-gray-900/[0.04] p-4 text-center">
               <p className="text-2xl font-extrabold text-gray-800">{submissions?.length || 0}</p>
@@ -204,6 +205,37 @@ function Section({ title, count, action, children }) {
       </div>
       {children}
     </section>
+  );
+}
+
+function InviteLinkCard({ inviteCode }) {
+  const [copied, setCopied] = useState(false);
+  const inviteLink = `${window.location.origin}/i/${inviteCode}`;
+
+  function copyToClipboard() {
+    navigator.clipboard.writeText(inviteLink);
+    setCopied(true);
+    toast.success('Copied to clipboard');
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  return (
+    <div className="bg-white rounded-2xl shadow-sm shadow-gray-900/[0.04] p-6 mb-6">
+      <div className="flex items-center gap-2 mb-1">
+        <span className="text-base">🔗</span>
+        <label className="text-sm font-semibold text-gray-700">Invite link</label>
+      </div>
+      <p className="text-gray-400 text-xs mb-3">Share this with your guests</p>
+      <div className="flex items-center gap-2">
+        <input readOnly value={inviteLink} className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-mono text-gray-600 focus:outline-none" />
+        <button
+          onClick={copyToClipboard}
+          className="px-5 py-2.5 bg-brand-600 hover:bg-accent-500 text-white rounded-xl text-sm font-semibold transition-all duration-200 whitespace-nowrap"
+        >
+          {copied ? '✓ Copied' : 'Copy'}
+        </button>
+      </div>
+    </div>
   );
 }
 
