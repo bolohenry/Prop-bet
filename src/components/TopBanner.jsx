@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import ShareButton from './ShareButton';
 
-export default function TopBanner() {
+export default function TopBanner({ inviteUrl }) {
   return (
     <div className="bg-brand-100/60 border-b border-brand-200/40">
       <div className="max-w-3xl mx-auto px-6 py-3 flex items-center justify-between">
@@ -10,7 +10,7 @@ export default function TopBanner() {
           <span className="text-sm font-bold text-brand-800 tracking-tight">Wedding prop bets</span>
         </Link>
         <div className="flex items-center gap-1">
-          <ShareButton variant="banner" />
+          <ShareButton variant="banner" shareUrl={inviteUrl} />
           <span className="text-brand-300 mx-1">·</span>
           <Link
             to="/about"

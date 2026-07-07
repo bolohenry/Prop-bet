@@ -1,7 +1,9 @@
+import { useEffect, useState } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import TopBanner from './components/TopBanner';
 import ErrorBoundary from './components/ErrorBoundary';
+import { getEventByAdmin } from './lib/api';
 import AdminCreate from './pages/AdminCreate';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminQuestionEditor from './pages/AdminQuestionEditor';
@@ -26,12 +28,39 @@ function shouldShowBanner(pathname) {
 export default function App() {
   const { pathname } = useLocation();
   const showBanner = shouldShowBanner(pathname);
+  const [inviteUrl, setInviteUrl] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setInviteUrl(null);
+
+    const inviteMatch = pathname.match(/^\/i\/([^/]+)/);
+    if (inviteMatch) {
+      setInviteUrl(`${window.location.origin}/i/${inviteMatch[1]}`);
+      return;
+    }
+
+    const adminMatch = pathname.match(/^\/admin\/([^/]+)/);
+    if (adminMatch && adminMatch[1] !== 'create') {
+      getEventByAdmin(adminMatch[1])
+        .then((event) => {
+          if (!cancelled && event?.invite_code) {
+            setInviteUrl(`${window.location.origin}/i/${event.invite_code}`);
+          }
+        })
+        .catch(() => {});
+    }
+
+    return () => {
+      cancelled = true;
+    };
+  }, [pathname]);
 
   return (
     <ErrorBoundary>
       <Toaster position="bottom-right" richColors closeButton />
       <div className="min-h-screen bg-gray-50 text-gray-900 flex flex-col">
-        {showBanner && <TopBanner />}
+        {showBanner && <TopBanner inviteUrl={inviteUrl} />}
         <div className="flex-1 flex flex-col">
           <Routes>
             <Route path="/" element={<Home />} />
