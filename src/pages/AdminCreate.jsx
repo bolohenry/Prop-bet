@@ -15,7 +15,6 @@ export default function AdminCreate() {
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState({});
   const [emailStatus, setEmailStatus] = useState(null);
-  const [hasTemplates, setHasTemplates] = useState(false);
 
   function handleTemplateSelect(template) {
     setSelectedTemplate(template);
@@ -142,10 +141,10 @@ export default function AdminCreate() {
           </div>
 
           <Link
-            to={`/admin/${result.adminCode}`}
+            to={selectedTemplate?.editAfter ? `/admin/${result.adminCode}/questions` : `/admin/${result.adminCode}`}
             className="block w-full bg-brand-600 hover:bg-accent-500 text-white py-4 rounded-xl text-base font-bold transition-all duration-200 shadow-lg shadow-brand-900/40 hover:shadow-accent-500/30 text-center"
           >
-            Open admin dashboard →
+            {selectedTemplate?.editAfter ? 'Edit your questions →' : 'Open admin dashboard →'}
           </Link>
         </div>
       </div>
@@ -160,14 +159,12 @@ export default function AdminCreate() {
         <div className="text-center mb-10">
           <h1 className="text-3xl sm:text-4xl font-extrabold text-white mb-3 tracking-tight">Create an event</h1>
           <p className="text-brand-300 text-base">
-            {step === 1
-              ? (hasTemplates ? 'Choose a template to get started, or start from scratch.' : 'Start from scratch to build your own questions.')
-              : 'Name your event and create it.'}
+            {step === 1 ? 'Pick Classic Wedding to go live right away, or Custom to edit questions first.' : 'Name your event and create it.'}
           </p>
         </div>
 
         {step === 1 ? (
-          <TemplatePicker onSelect={handleTemplateSelect} onTemplatesLoaded={setHasTemplates} />
+          <TemplatePicker onSelect={handleTemplateSelect} />
         ) : (
           <>
             <button
