@@ -141,6 +141,13 @@ export default function ParticipantSurvey() {
   function handleWagerChange(qKey, value) {
     setWagers(prev => {
       const next = { ...prev };
+      if (value !== 1) {
+        // Only one question can hold a given multiplier at a time — bump
+        // whichever question currently has it back to no wager.
+        for (const key of Object.keys(next)) {
+          if (key !== qKey && next[key] === value) delete next[key];
+        }
+      }
       if (value === 1) {
         delete next[qKey];
       } else {

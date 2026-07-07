@@ -4,17 +4,10 @@ export default function WagerPicker({ answers, wagers, onWagerChange, onBack, on
 
   function handleCycle(qId) {
     const current = wagers[qId] || 1;
-    let next;
-    if (current === 2 || current === 3) {
-      next = 1;
-    } else if (!tripleQ) {
-      next = 3;
-    } else if (!doubleQ) {
-      next = 2;
-    } else {
-      next = 1;
-    }
-
+    // Cycle each question independently through no-wager → 2× → 3× → no-wager.
+    // If another question already holds the multiplier we're cycling into,
+    // onWagerChange (in the parent) bumps that question back to no-wager.
+    const next = current === 1 ? 2 : current === 2 ? 3 : 1;
     onWagerChange(qId, next);
   }
 
