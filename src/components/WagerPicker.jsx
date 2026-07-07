@@ -24,6 +24,7 @@ export default function WagerPicker({ answers, wagers, onWagerChange, onBack, on
           Pick <span className="text-brand-200 font-bold">1 question to triple down (3×)</span> and{' '}
           <span className="text-accent-300 font-bold">1 to double down (2×)</span>
         </p>
+        <p className="text-brand-400 text-xs max-w-md mx-auto mt-2">Tap a question below to set your wager on it.</p>
       </div>
 
       <div className="max-w-lg mx-auto px-4 -mt-3 space-y-3">

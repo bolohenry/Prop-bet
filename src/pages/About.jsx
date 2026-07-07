@@ -82,12 +82,12 @@ export default function About() {
           <div className="space-y-6 text-gray-600 text-lg leading-relaxed">
             <FadeIn delay={150}>
               <p>
-                We were attending a lot of weddings — the kind of year where your weekends disappear and your suit gets dry-cleaned more than your jeans. Somewhere between the cocktail hour and the bouquet toss, someone had the idea: <em className="text-gray-800 font-medium">what if we made this interesting?</em>
+                We were attending a lot of weddings. The kind of year where your weekends disappear and your suit gets dry-cleaned more than your jeans. Somewhere between the cocktail hour and the bouquet toss, someone had the idea: <em className="text-gray-800 font-medium">what if we made this interesting?</em>
               </p>
             </FadeIn>
             <FadeIn delay={200}>
               <p>
-                So we started betting. Not on anything serious — just the little things. Will there be a neon sign? Is the best man going to talk for 10 minutes? Will someone request Mr. Brightside? It was a Google Form at first. Scrappy. Manual. Someone had to tally scores in a spreadsheet while also trying to enjoy the open bar.
+                So we started betting. Not on anything serious, just the little things. Will there be a neon sign? Is the best man going to talk for 10 minutes? Will someone request Mr. Brightside? It was a Google Form at first. Scrappy. Manual. Someone had to tally scores in a spreadsheet while also trying to enjoy the open bar.
               </p>
             </FadeIn>
             <FadeIn delay={250}>
@@ -167,9 +167,10 @@ export default function About() {
           </FadeIn>
           <div className="grid gap-6 sm:grid-cols-2">
             {[
-              { icon: '📝', title: 'One submission', text: 'You get one shot. Once you submit your answers, they\'re locked in — no edits, no second-guessing.' },
+              { icon: '📝', title: 'One submission', text: 'You get one shot. Once you submit your answers, they\'re locked in: no edits, no second-guessing.' },
               { icon: '🎯', title: 'One point each', text: 'There are 12 scored questions. Each correct answer earns one point. That\'s it.' },
-              { icon: '⏱️', title: 'Tie breaker', text: 'If two players tie on points, the tie breaker kicks in: closest guess to the actual time the bride leaves the after party. Price is Right rules — you can\'t go under.' },
+              { icon: '🎰', title: 'Wager for more', text: 'Before you submit, pick one question to triple down on (3×) and one to double down on (2×). Get them right for bonus points, get them wrong and it\'s zero either way, just like any other question.' },
+              { icon: '⏱️', title: 'Tie breaker', text: 'If two players tie on points, the tie breaker kicks in: closest guess to the actual time the bride leaves the after party. Price is Right rules: you can\'t go under.' },
               { icon: '👑', title: 'Winner takes all', text: 'Highest score wins. If there\'s still a tie after the tie breaker, the host makes the final call.' },
               { icon: '📊', title: 'Live updates', text: 'As the host scores each question during the wedding, your dashboard updates in real time. Watch the leaderboard shift.' },
               { icon: '🔒', title: 'No peeking', text: 'You can only see the dashboard after you\'ve submitted your own answers. No copying.' },
