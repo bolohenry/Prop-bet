@@ -166,9 +166,9 @@ function QuestionCard({ question, index, total, isEditing, onToggleEdit, onSave,
     return (
       <div className="bg-white rounded-2xl shadow-sm shadow-gray-900/[0.04] p-5 flex items-start gap-3">
         <div className="flex flex-col gap-1 items-center">
-          <button onClick={() => onMove(-1)} disabled={index === 0} className="text-gray-300 hover:text-gray-500 disabled:opacity-30 text-xs">▲</button>
+          <button onClick={() => onMove(-1)} disabled={index === 0} className="text-gray-300 hover:text-gray-500 disabled:opacity-30 text-xs p-2 -m-2">▲</button>
           <span className="text-xs font-mono text-gray-400">{index + 1}</span>
-          <button onClick={() => onMove(1)} disabled={index === total - 1} className="text-gray-300 hover:text-gray-500 disabled:opacity-30 text-xs">▼</button>
+          <button onClick={() => onMove(1)} disabled={index === total - 1} className="text-gray-300 hover:text-gray-500 disabled:opacity-30 text-xs p-2 -m-2">▼</button>
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-gray-800 truncate">{question.label}</p>

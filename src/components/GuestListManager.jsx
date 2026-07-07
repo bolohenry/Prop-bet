@@ -68,7 +68,7 @@ export default function GuestListManager({ eventId, guests, setGuests, submissio
   return (
     <div className="space-y-4">
       <form onSubmit={handleAdd} className="bg-white rounded-2xl shadow-sm shadow-gray-900/[0.04] p-5">
-        <div className="flex items-end gap-2">
+        <div className="flex flex-col sm:flex-row sm:items-end gap-2">
           <div className="flex-1">
             <label className="block text-xs font-semibold text-gray-500 mb-1">Name</label>
             <input
@@ -89,13 +89,15 @@ export default function GuestListManager({ eventId, guests, setGuests, submissio
               className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm"
             />
           </div>
-          <button type="submit" disabled={adding} className="px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-bold transition-colors disabled:opacity-50 whitespace-nowrap">
-            Add
-          </button>
-          <label className="px-4 py-2.5 bg-white border border-gray-200 hover:bg-gray-50 rounded-xl text-sm font-semibold text-gray-600 cursor-pointer transition-colors whitespace-nowrap">
-            CSV
-            <input ref={fileRef} type="file" accept=".csv" onChange={handleCsvUpload} className="hidden" />
-          </label>
+          <div className="flex gap-2">
+            <button type="submit" disabled={adding} className="flex-1 sm:flex-none px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-bold transition-colors disabled:opacity-50 whitespace-nowrap">
+              Add
+            </button>
+            <label className="flex-1 sm:flex-none text-center px-4 py-2.5 bg-white border border-gray-200 hover:bg-gray-50 rounded-xl text-sm font-semibold text-gray-600 cursor-pointer transition-colors whitespace-nowrap">
+              CSV
+              <input ref={fileRef} type="file" accept=".csv" onChange={handleCsvUpload} className="hidden" />
+            </label>
+          </div>
         </div>
       </form>
 
@@ -116,7 +118,7 @@ export default function GuestListManager({ eventId, guests, setGuests, submissio
                     </span>
                   </td>
                   <td className="px-5 py-3 text-right">
-                    <button onClick={() => handleRemove(g.id)} className="text-gray-300 hover:text-danger-500 text-xs transition-colors">✕</button>
+                    <button onClick={() => handleRemove(g.id)} className="text-gray-300 hover:text-danger-500 text-xs transition-colors p-2 -m-2">✕</button>
                   </td>
                 </tr>
               ))}

@@ -86,7 +86,7 @@ export default function ParticipantDashboard() {
             </div>
             <button
               onClick={() => setShowAnswers(!showAnswers)}
-              className="text-xs text-brand-200 hover:text-white font-medium transition-colors duration-150"
+              className="text-xs text-brand-200 hover:text-white font-medium transition-colors duration-150 px-2 py-2 -mx-2"
             >
               {showAnswers ? 'Hide answers' : 'View my answers'}
             </button>

@@ -49,7 +49,7 @@ export default function ShareButton({ variant = 'dark', className = '', shareUrl
     return (
       <button
         onClick={handleShare}
-        className={`text-xs font-semibold text-brand-600 hover:text-brand-800 transition-colors duration-150 cursor-pointer ${className}`}
+        className={`text-xs font-semibold text-brand-600 hover:text-brand-800 transition-colors duration-150 cursor-pointer px-2 py-2 ${className}`}
       >
         {copied ? 'Link copied' : 'Share with a friend'}
       </button>

@@ -494,25 +494,25 @@ function TieBreakerControl({ adminCode, event, submissions, questions }) {
         <label className="block text-sm font-semibold text-gray-700 mb-3">
           {tbQ ? tbQ.label.replace(/^Tie breaker — /i, '') : 'What time did the bride actually leave?'}
         </label>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <input
             type="number"
             min="1" max="12"
             value={hour}
             onChange={e => setHour(e.target.value.replace(/\D/g, '').slice(0, 2))}
             placeholder="12"
-            className="w-16 border border-gray-200 rounded-xl px-3 py-3 text-center text-base font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 transition-all duration-200"
+            className="w-16 shrink-0 border border-gray-200 rounded-xl px-3 py-3 text-center text-base font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 transition-all duration-200"
           />
-          <span className="text-gray-400 text-lg font-bold">:</span>
+          <span className="text-gray-400 text-lg font-bold shrink-0">:</span>
           <input
             type="number"
             min="0" max="59"
             value={minute}
             onChange={e => setMinute(e.target.value.replace(/\D/g, '').slice(0, 2))}
             placeholder="00"
-            className="w-16 border border-gray-200 rounded-xl px-3 py-3 text-center text-base font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 transition-all duration-200"
+            className="w-16 shrink-0 border border-gray-200 rounded-xl px-3 py-3 text-center text-base font-semibold focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400 transition-all duration-200"
           />
-          <div className="flex rounded-xl border border-gray-200 overflow-hidden">
+          <div className="flex shrink-0 rounded-xl border border-gray-200 overflow-hidden">
             {['AM', 'PM'].map(p => (
               <button
                 key={p}
@@ -531,7 +531,7 @@ function TieBreakerControl({ adminCode, event, submissions, questions }) {
           <button
             onClick={handleSaveTime}
             disabled={saving || !hour || minute === ''}
-            className="px-5 py-3 bg-brand-600 hover:bg-accent-500 text-white rounded-xl text-sm font-bold transition-all duration-200 disabled:opacity-40 shadow-sm"
+            className="shrink-0 px-5 py-3 bg-brand-600 hover:bg-accent-500 text-white rounded-xl text-sm font-bold transition-all duration-200 disabled:opacity-40 shadow-sm"
           >
             {saving ? '...' : correctTime ? 'Update' : 'Set'}
           </button>
@@ -539,7 +539,7 @@ function TieBreakerControl({ adminCode, event, submissions, questions }) {
             <button
               onClick={handleClearTime}
               disabled={saving}
-              className="px-3 py-3 text-gray-400 hover:text-danger-500 rounded-xl text-sm transition-colors duration-150"
+              className="shrink-0 px-3 py-3 text-gray-400 hover:text-danger-500 rounded-xl text-sm transition-colors duration-150"
             >
               ✕
             </button>
