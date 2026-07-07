@@ -49,7 +49,7 @@ export default function StickyTabNav({ sections }) {
           <button
             key={s.id}
             onClick={() => handleClick(s.id)}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 ${
+            className={`shrink-0 px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 ${
               active === s.id
                 ? 'bg-brand-600 text-white shadow-sm'
                 : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
