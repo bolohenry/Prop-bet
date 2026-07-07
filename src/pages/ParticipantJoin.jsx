@@ -136,7 +136,7 @@ export default function ParticipantJoin() {
                   type="text"
                   value={displayName}
                   onChange={e => setDisplayName(e.target.value)}
-                  placeholder="e.g. Uncle Bob"
+                  placeholder="e.g. Cousin Greg"
                   className="w-full bg-white/[0.06] border border-white/[0.1] rounded-xl px-4 py-3.5 text-base text-white placeholder-brand-400/60 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500/50 transition-all duration-200"
                   autoFocus
                 />
