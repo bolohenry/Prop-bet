@@ -9,61 +9,69 @@ export default function AnswerMatrix({ submissions, outcomes, scoredQuestions })
   }
 
   return (
-    <div className="overflow-x-auto bg-white rounded-2xl shadow-sm shadow-gray-900/[0.04]">
-      <table className="text-xs min-w-full">
-        <thead>
-          <tr className="border-b border-gray-100">
-            <th className="text-left px-4 py-3 font-semibold text-gray-400 uppercase tracking-wider sticky left-0 bg-white z-10">Name</th>
-            {scoredQuestions.map(q => (
-              <th key={q.question_key} className="px-2 py-3 font-semibold text-gray-400 text-center whitespace-nowrap uppercase tracking-wider">
-                Q{q.number}
-              </th>
-            ))}
-          </tr>
-          <tr className="border-b border-gray-100 bg-brand-50/40">
-            <td className="px-4 py-2 font-bold text-brand-600 sticky left-0 bg-brand-50/40 z-10 text-xs">Correct</td>
-            {scoredQuestions.map(q => {
-              const outcome = outcomeMap[q.question_key];
-              return (
-                <td key={q.question_key} className="px-2 py-2 text-center">
-                  {outcome?.resolved ? (
-                    <span className="font-bold text-brand-600">{outcome.answer}</span>
-                  ) : (
-                    <span className="text-gray-300">—</span>
-                  )}
-                </td>
-              );
-            })}
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-50">
-          {submissions.map(s => (
-            <tr key={s.display_name} className="hover:bg-gray-50/50 transition-colors duration-150">
-              <td className="px-4 py-3 font-semibold text-gray-700 whitespace-nowrap sticky left-0 bg-white z-10">{s.display_name}</td>
+    <div>
+      <p className="sm:hidden text-gray-400 text-xs font-medium mb-1.5 flex items-center gap-1">
+        Swipe to see all questions
+        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="9 6 15 12 9 18" />
+        </svg>
+      </p>
+      <div className="overflow-x-auto bg-white rounded-2xl shadow-sm shadow-gray-900/[0.04]">
+        <table className="text-xs min-w-full">
+          <thead>
+            <tr className="border-b border-gray-100">
+              <th className="text-left px-4 py-3 font-semibold text-gray-400 uppercase tracking-wider sticky left-0 bg-white z-10">Name</th>
+              {scoredQuestions.map(q => (
+                <th key={q.question_key} className="px-2 py-3 font-semibold text-gray-400 text-center whitespace-nowrap uppercase tracking-wider">
+                  Q{q.number}
+                </th>
+              ))}
+            </tr>
+            <tr className="border-b border-gray-100 bg-brand-50/40">
+              <td className="px-4 py-2 font-bold text-brand-600 sticky left-0 bg-brand-50/40 z-10 text-xs">Correct</td>
               {scoredQuestions.map(q => {
-                const answer = s.answers?.[q.question_key];
                 const outcome = outcomeMap[q.question_key];
-                const isResolved = outcome?.resolved;
-                const isCorrect = isResolved && outcome.answer === answer;
-                const wagerLabel = s.wager_3x === q.question_key ? '3×' : s.wager_2x === q.question_key ? '2×' : null;
-
                 return (
-                  <td key={q.question_key} className={`px-2 py-3 text-center font-medium ${
-                    isResolved
-                      ? isCorrect
-                        ? 'text-success-700 bg-success-50/60'
-                        : 'text-gray-300'
-                      : 'text-gray-500'
-                  }`}>
-                    {answer || '—'}
-                    {wagerLabel && <sup className="text-[9px] ml-0.5 text-accent-500 font-bold">{wagerLabel}</sup>}
+                  <td key={q.question_key} className="px-2 py-2 text-center">
+                    {outcome?.resolved ? (
+                      <span className="font-bold text-brand-600">{outcome.answer}</span>
+                    ) : (
+                      <span className="text-gray-300">—</span>
+                    )}
                   </td>
                 );
               })}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="divide-y divide-gray-50">
+            {submissions.map(s => (
+              <tr key={s.display_name} className="hover:bg-gray-50/50 transition-colors duration-150">
+                <td className="px-4 py-3 font-semibold text-gray-700 whitespace-nowrap sticky left-0 bg-white z-10">{s.display_name}</td>
+                {scoredQuestions.map(q => {
+                  const answer = s.answers?.[q.question_key];
+                  const outcome = outcomeMap[q.question_key];
+                  const isResolved = outcome?.resolved;
+                  const isCorrect = isResolved && outcome.answer === answer;
+                  const wagerLabel = s.wager_3x === q.question_key ? '3×' : s.wager_2x === q.question_key ? '2×' : null;
+
+                  return (
+                    <td key={q.question_key} className={`px-2 py-3 text-center font-medium ${
+                      isResolved
+                        ? isCorrect
+                          ? 'text-success-700 bg-success-50/60'
+                          : 'text-gray-300'
+                        : 'text-gray-500'
+                    }`}>
+                      {answer || '—'}
+                      {wagerLabel && <sup className="text-[9px] ml-0.5 text-accent-500 font-bold">{wagerLabel}</sup>}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
