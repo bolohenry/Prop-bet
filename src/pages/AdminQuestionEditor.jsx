@@ -99,7 +99,7 @@ export default function AdminQuestionEditor() {
         </div>
       </div>
 
-      <div className="max-w-3xl mx-auto px-4 -mt-4 space-y-3">
+      <div className="max-w-3xl mx-auto px-4 mt-6 space-y-3">
         {questions.map((q, i) => (
           <QuestionCard
             key={q.id}

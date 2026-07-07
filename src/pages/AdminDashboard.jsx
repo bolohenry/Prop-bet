@@ -116,7 +116,7 @@ export default function AdminDashboard() {
 
       <StickyTabNav sections={tabSections} />
 
-      <div className="max-w-4xl mx-auto px-4 -mt-5 space-y-8">
+      <div className="max-w-4xl mx-auto px-4 mt-6 space-y-8">
         <div id="section-overview">
           <div className="grid grid-cols-3 gap-3 mb-6">
             <div className="bg-white rounded-2xl shadow-sm shadow-gray-900/[0.04] p-4 text-center">

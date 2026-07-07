@@ -79,7 +79,7 @@ export default function ParticipantRecap() {
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto px-4 -mt-5 space-y-6">
+      <div className="max-w-2xl mx-auto px-4 mt-6 space-y-6">
         {winnerSub && (
           <div className="bg-white rounded-2xl shadow-sm p-8 text-center">
             <div className="text-4xl mb-3">🏆</div>

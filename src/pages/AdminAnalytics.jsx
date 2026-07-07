@@ -107,7 +107,7 @@ export default function AdminAnalytics() {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 -mt-4 space-y-6">
+      <div className="max-w-4xl mx-auto px-4 mt-6 space-y-6">
         <div className="grid grid-cols-3 gap-3">
           <StatCard value={submissions.length} label="Total Submissions" />
           <StatCard value={scoredQuestions.length} label="Questions" />

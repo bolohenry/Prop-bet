@@ -230,7 +230,7 @@ export default function ParticipantSurvey() {
         <p className="text-brand-400/70 text-xs">Playing as {avatar && <span className="mr-1">{avatar}</span>}<span className="text-brand-200 font-semibold">{displayName}</span></p>
       </div>
 
-      <form onSubmit={handleNextStep} className="max-w-lg mx-auto px-4 -mt-3 space-y-3">
+      <form onSubmit={handleNextStep} className="max-w-lg mx-auto px-4 mt-6 space-y-3">
 
       {showScrollHint && (
         <div className="fixed bottom-6 left-0 right-0 z-40 flex justify-center pointer-events-none animate-bounce">

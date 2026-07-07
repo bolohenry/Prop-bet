@@ -74,7 +74,7 @@ export default function ParticipantDashboard() {
         </div>
       </div>
 
-      <div className="max-w-3xl mx-auto px-4 -mt-5 space-y-6">
+      <div className="max-w-3xl mx-auto px-4 mt-6 space-y-6">
         <div className="bg-brand-600 rounded-2xl p-5 shadow-lg shadow-brand-600/20">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
