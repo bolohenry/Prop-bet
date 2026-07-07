@@ -92,20 +92,20 @@ export default function AdminDashboard() {
           <div className="flex items-center gap-3 mt-3">
             <Link
               to={`/admin/${adminCode}/questions`}
-              className="text-xs bg-white/10 hover:bg-white/20 text-brand-200 px-3 py-1.5 rounded-lg font-semibold transition-colors duration-150"
+              className="tap-compact inline-flex items-center text-xs bg-white/10 hover:bg-white/20 text-brand-200 px-3 py-2 rounded-lg font-semibold transition-colors duration-150"
             >
               Edit Questions
             </Link>
             <Link
               to={`/admin/${adminCode}/analytics`}
-              className="text-xs bg-white/10 hover:bg-white/20 text-brand-200 px-3 py-1.5 rounded-lg font-semibold transition-colors duration-150"
+              className="tap-compact inline-flex items-center text-xs bg-white/10 hover:bg-white/20 text-brand-200 px-3 py-2 rounded-lg font-semibold transition-colors duration-150"
             >
               Analytics
             </Link>
             {event.status === 'scoring' && (
               <Link
                 to={`/admin/${adminCode}/reveal`}
-                className="text-xs bg-accent-500/20 hover:bg-accent-500/30 text-accent-300 px-3 py-1.5 rounded-lg font-semibold transition-colors duration-150"
+                className="tap-compact inline-flex items-center text-xs bg-accent-500/20 hover:bg-accent-500/30 text-accent-300 px-3 py-2 rounded-lg font-semibold transition-colors duration-150"
               >
                 Live Reveal
               </Link>
@@ -466,22 +466,40 @@ function TieBreakerControl({ adminCode, event, submissions, questions }) {
 
   async function handleSaveTime() {
     const formatted = formatTimeString(hour, minute, period);
-    if (!formatted) return;
+    if (!formatted) {
+      toast.error('Enter an hour and minute first.');
+      return;
+    }
     setSaving(true);
-    try { await setTieBreakerAnswer(adminCode, formatted); } catch {}
+    try {
+      await setTieBreakerAnswer(adminCode, formatted);
+      toast.success(`Tie breaker time set to ${formatted}`);
+    } catch (err) {
+      toast.error(err.message || 'Could not save the tie breaker time.');
+    }
     setSaving(false);
   }
 
   async function handleClearTime() {
     setSaving(true);
-    try { await setTieBreakerAnswer(adminCode, null); } catch {}
+    try {
+      await setTieBreakerAnswer(adminCode, null);
+      toast.success('Tie breaker time cleared');
+    } catch (err) {
+      toast.error(err.message || 'Could not clear the tie breaker time.');
+    }
     setHour(''); setMinute(''); setPeriod('PM');
     setSaving(false);
   }
 
   async function handleOverride(name) {
     setOverriding(true);
-    try { await setTieWinnerOverride(adminCode, name === autoWinner ? null : name); } catch {}
+    try {
+      await setTieWinnerOverride(adminCode, name === autoWinner ? null : name);
+      toast.success(name === autoWinner ? 'Winner override cleared' : `${name} set as winner`);
+    } catch (err) {
+      toast.error(err.message || 'Could not update the winner.');
+    }
     setOverriding(false);
   }
 
@@ -553,6 +571,15 @@ function TieBreakerControl({ adminCode, event, submissions, questions }) {
             </p>
             <p className="text-xs text-gray-500">
               Closest guess at or after {correctTime} (Price Is Right rules).
+            </p>
+          </div>
+        )}
+
+        {correctTime && !autoWinner && (
+          <div className="mt-4 bg-gray-50 border border-gray-200 rounded-xl p-4">
+            <p className="text-sm font-semibold text-gray-600 mb-1">Saved — no tie to break yet</p>
+            <p className="text-xs text-gray-500">
+              An auto-winner only appears once two or more players are tied for first place. When that happens, this will pick whoever guessed closest at or after {correctTime}.
             </p>
           </div>
         )}

@@ -62,6 +62,13 @@ input[type="number"] {
   min-width: auto;
 }
 
+/* Escape hatch for compact inline controls (secondary pill nav, etc.) that
+   shouldn't be forced up to the 44px touch-target minimum above. */
+.tap-compact {
+  min-height: 0;
+  min-width: 0;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
