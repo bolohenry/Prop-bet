@@ -17,13 +17,20 @@ const CATEGORY_ICONS = {
   custom: '✏️',
 };
 
-export default function TemplatePicker({ onSelect }) {
+export default function TemplatePicker({ onSelect, onTemplatesLoaded }) {
   const [templates, setTemplates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
 
   useEffect(() => {
-    getTemplates().then(setTemplates).catch(() => {}).finally(() => setLoading(false));
+    getTemplates()
+      .then(data => {
+        setTemplates(data);
+        onTemplatesLoaded?.(data.length > 0);
+      })
+      .catch(() => onTemplatesLoaded?.(false))
+      .finally(() => setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const categories = ['all', ...new Set(templates.map(t => t.category))];
@@ -35,21 +42,23 @@ export default function TemplatePicker({ onSelect }) {
 
   return (
     <div>
-      <div className="flex gap-2 mb-4 overflow-x-auto scrollbar-hide">
-        {categories.map(c => (
-          <button
-            key={c}
-            onClick={() => setFilter(c)}
-            className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 ${
-              filter === c
-                ? 'bg-brand-600 text-white'
-                : 'bg-white/[0.08] text-brand-300 hover:bg-white/[0.12]'
-            }`}
-          >
-            {c === 'all' ? 'All' : `${CATEGORY_ICONS[c] || ''} ${CATEGORY_LABELS[c] || c}`}
-          </button>
-        ))}
-      </div>
+      {templates.length > 0 && (
+        <div className="flex gap-2 mb-4 overflow-x-auto scrollbar-hide">
+          {categories.map(c => (
+            <button
+              key={c}
+              onClick={() => setFilter(c)}
+              className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-200 ${
+                filter === c
+                  ? 'bg-brand-600 text-white'
+                  : 'bg-white/[0.08] text-brand-300 hover:bg-white/[0.12]'
+              }`}
+            >
+              {c === 'all' ? 'All' : `${CATEGORY_ICONS[c] || ''} ${CATEGORY_LABELS[c] || c}`}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <button
@@ -58,7 +67,7 @@ export default function TemplatePicker({ onSelect }) {
         >
           <div className="text-xl mb-2">📝</div>
           <p className="text-sm font-bold text-white">Start from scratch</p>
-          <p className="text-xs text-brand-400 mt-1">Create your own questions</p>
+          <p className="text-xs text-brand-400 mt-1">Starts with our default question set — edit or add your own after</p>
         </button>
 
         {filtered.map(t => {

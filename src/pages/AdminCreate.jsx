@@ -15,6 +15,7 @@ export default function AdminCreate() {
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState({});
   const [emailStatus, setEmailStatus] = useState(null);
+  const [hasTemplates, setHasTemplates] = useState(false);
 
   function handleTemplateSelect(template) {
     setSelectedTemplate(template);
@@ -159,12 +160,14 @@ export default function AdminCreate() {
         <div className="text-center mb-10">
           <h1 className="text-3xl sm:text-4xl font-extrabold text-white mb-3 tracking-tight">Create an event</h1>
           <p className="text-brand-300 text-base">
-            {step === 1 ? 'Choose a template to get started, or start from scratch.' : 'Name your event and create it.'}
+            {step === 1
+              ? (hasTemplates ? 'Choose a template to get started, or start from scratch.' : 'Start from scratch to build your own questions.')
+              : 'Name your event and create it.'}
           </p>
         </div>
 
         {step === 1 ? (
-          <TemplatePicker onSelect={handleTemplateSelect} />
+          <TemplatePicker onSelect={handleTemplateSelect} onTemplatesLoaded={setHasTemplates} />
         ) : (
           <>
             <button
