@@ -11,7 +11,6 @@ export default function ParticipantJoin() {
   const [event, setEvent] = useState(null);
   const [displayName, setDisplayName] = useState('');
   const [avatar, setAvatar] = useState('');
-  const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [checking, setChecking] = useState(false);
@@ -143,20 +142,6 @@ export default function ParticipantJoin() {
                 />
               </div>
               <AvatarPicker value={avatar} onChange={setAvatar} />
-              <div>
-                <label className="block text-sm font-semibold text-brand-200 mb-2">
-                  Your email
-                  <span className="text-brand-400/60 font-normal ml-1">(optional)</span>
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                  className="w-full bg-white/[0.06] border border-white/[0.1] rounded-xl px-4 py-3.5 text-base text-white placeholder-brand-400/60 focus:outline-none focus:ring-2 focus:ring-brand-500/50 focus:border-brand-500/50 transition-all duration-200"
-                />
-                <p className="text-brand-400/50 text-xs mt-1.5">We'll send you a link to check your results later.</p>
-              </div>
               {error && (
                 <div className="bg-danger-500/15 border border-danger-500/20 rounded-xl p-3">
                   <p className="text-danger-400 text-sm">{error}</p>
