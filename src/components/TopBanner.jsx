@@ -9,12 +9,12 @@ export default function TopBanner({ inviteUrl }) {
           <span className="text-sm">💍</span>
           <span className="text-sm font-bold text-brand-800 tracking-tight">Wedding prop bets</span>
         </Link>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 shrink-0">
           <ShareButton variant="banner" shareUrl={inviteUrl} />
-          <span className="text-brand-300 mx-1">·</span>
+          <span className="text-brand-300">·</span>
           <Link
             to="/about"
-            className="text-xs font-semibold text-brand-600 hover:text-brand-800 transition-colors duration-150 cursor-pointer px-2 py-1"
+            className="text-xs font-semibold text-brand-600 hover:text-brand-800 transition-colors duration-150 cursor-pointer whitespace-nowrap px-2 py-2"
           >
             How it works
           </Link>
